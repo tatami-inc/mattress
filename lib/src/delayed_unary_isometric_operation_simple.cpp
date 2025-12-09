@@ -8,78 +8,82 @@
 #include <string>
 #include <cstdint>
 
-template<typename Operation_>
-uintptr_t convert(uintptr_t ptr, Operation_ op) {
-    auto bound = mattress::cast(ptr);
-    auto tmp = std::make_unique<mattress::BoundMatrix>();
-    tmp->ptr = tatami::make_DelayedUnaryIsometricOperation(bound->ptr, std::move(op));
-    tmp->original = bound->original;
-    return mattress::cast(tmp.release());
-}
+std::uintptr_t initialize_delayed_unary_isometric_operation_simple(std::uintptr_t ptr, const std::string& op) {
+    std::shared_ptr<tatami::DelayedUnaryIsometricOperationHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex> > opptr;
 
-uintptr_t initialize_delayed_unary_isometric_operation_simple(uintptr_t ptr, const std::string& op) {
     if (op == "abs") {
-        return convert(ptr, tatami::DelayedUnaryIsometricAbs<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricAbsHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "sign") {
-        return convert(ptr, tatami::DelayedUnaryIsometricSign<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricSignHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "log") {
-        return convert(ptr, tatami::DelayedUnaryIsometricLog<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricLogHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>);
     } else if (op == "log2") {
-        return convert(ptr, tatami::DelayedUnaryIsometricLog(2.0));
+        opptr.reset(new tatami::DelayedUnaryIsometricLogHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>(2.0));
     } else if (op == "log10") {
-        return convert(ptr, tatami::DelayedUnaryIsometricLog(10.0));
+        opptr.reset(new tatami::DelayedUnaryIsometricLogHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>(10.0));
     } else if (op == "log1p") {
-        return convert(ptr, tatami::DelayedUnaryIsometricLog1p<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricLog1pHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>);
 
     } else if (op == "sqrt") {
-        return convert(ptr, tatami::DelayedUnaryIsometricSqrt<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricSqrtHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "ceil") {
-        return convert(ptr, tatami::DelayedUnaryIsometricCeiling<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricCeilingHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "floor") {
-        return convert(ptr, tatami::DelayedUnaryIsometricFloor<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricFloorHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "trunc") {
-        return convert(ptr, tatami::DelayedUnaryIsometricTrunc<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricTruncHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "round") {
-        return convert(ptr, tatami::DelayedUnaryIsometricRound<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricRoundHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "exp") {
-        return convert(ptr, tatami::DelayedUnaryIsometricExp<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricExpHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "expm1") {
-        return convert(ptr, tatami::DelayedUnaryIsometricExpm1<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricExpm1Helper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "cos") {
-        return convert(ptr, tatami::DelayedUnaryIsometricCos<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricCosHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "sin") {
-        return convert(ptr, tatami::DelayedUnaryIsometricSin<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricSinHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "tan") {
-        return convert(ptr, tatami::DelayedUnaryIsometricTan<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricTanHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "cosh") {
-        return convert(ptr, tatami::DelayedUnaryIsometricCosh<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricCoshHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "sinh") {
-        return convert(ptr, tatami::DelayedUnaryIsometricSinh<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricSinhHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "tanh") {
-        return convert(ptr, tatami::DelayedUnaryIsometricTanh<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricTanhHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "arccos") {
-        return convert(ptr, tatami::DelayedUnaryIsometricAcos<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricAcosHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "arcsin") {
-        return convert(ptr, tatami::DelayedUnaryIsometricAsin<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricAsinHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "arctan") {
-        return convert(ptr, tatami::DelayedUnaryIsometricAtan<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricAtanHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "arccosh") {
-        return convert(ptr, tatami::DelayedUnaryIsometricAcosh<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricAcoshHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "arcsinh") {
-        return convert(ptr, tatami::DelayedUnaryIsometricAsinh<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricAsinhHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "arctanh") {
-        return convert(ptr, tatami::DelayedUnaryIsometricAtanh<>());
+        opptr.reset(new tatami::DelayedUnaryIsometricAtanhHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
+
+    } else {
+        throw std::runtime_error("unknown binary isometric operation '" + op + "'");
     }
 
-    throw std::runtime_error("unknown binary isometric operation '" + op + "'");
-    return 0;
+    auto bound = mattress::cast(ptr);
+    auto tmp = std::make_unique<mattress::BoundMatrix>();
+    tmp->ptr.reset(
+        new tatami::DelayedUnaryIsometricOperation<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>(
+            bound->ptr,
+            std::move(opptr)
+        )
+    );
+    tmp->original = bound->original;
+    return mattress::cast(tmp.release());
 }
 
 void init_delayed_unary_isometric_operation_simple(pybind11::module& m) {

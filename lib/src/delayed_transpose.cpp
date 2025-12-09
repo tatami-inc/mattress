@@ -6,7 +6,7 @@
 #include <string>
 #include <cstdint>
 
-uintptr_t initialize_delayed_transpose(uintptr_t ptr) {
+std::uintptr_t initialize_delayed_transpose(std::uintptr_t ptr) {
     auto bound = mattress::cast(ptr);
     auto tmp = std::make_unique<mattress::BoundMatrix>();
     tmp->ptr = tatami::make_DelayedTranspose(bound->ptr);

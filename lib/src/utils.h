@@ -5,6 +5,10 @@
 #include "pybind11/numpy.h"
 
 #include <stdexcept>
+#include <type_traits>
+
+template<typename Input_>
+using I = std::remove_cv_t<std::remove_reference_t<Input_> >;
 
 // As a general rule, we avoid using pybind11::array_t as function arguments,
 // because pybind11 might auto-cast and create an allocation that we then
