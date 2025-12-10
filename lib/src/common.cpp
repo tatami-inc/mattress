@@ -184,7 +184,7 @@ pybind11::tuple compute_column_ranges(std::uintptr_t ptr, int num_threads) {
 
 pybind11::array_t<mattress::MatrixIndex> compute_row_nan_counts(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixIndex> >(mat->nrow());
     const auto optr = static_cast<mattress::MatrixIndex*>(output.request().ptr);
     tatami_stats::counts::nan::Options opt;
     opt.num_threads = num_threads;
@@ -194,7 +194,7 @@ pybind11::array_t<mattress::MatrixIndex> compute_row_nan_counts(std::uintptr_t p
 
 pybind11::array_t<mattress::MatrixIndex> compute_column_nan_counts(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixIndex> >(mat->ncol());
     const auto optr = static_cast<mattress::MatrixIndex*>(output.request().ptr);
     tatami_stats::counts::nan::Options opt;
     opt.num_threads = num_threads;
