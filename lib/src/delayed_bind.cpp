@@ -1,4 +1,5 @@
 #include "mattress.h"
+#include "utils.h"
 
 #include "tatami/tatami.hpp"
 
@@ -6,19 +7,19 @@
 
 #include <vector>
 
-uintptr_t initialize_delayed_bind(const pybind11::list& inputs, int along) {
-    std::vector<std::shared_ptr<tatami::Matrix<mattress::MatrixValue, mattress::MatrixIndex> > > combined;
-    combined.reserve(inputs.size());
-    pybind11::tuple originals(inputs.size());
+std::uintptr_t initialize_delayed_bind(const pybind11::list& inputs, int along) {
+    const auto nmats = inputs.size();
+    auto combined = sanisizer::create<std::vector<std::shared_ptr<tatami::Matrix<mattress::MatrixValue, mattress::MatrixIndex> > > >(nmats);
+    auto originals = sanisizer::create<pybind11::tuple>(inputs.size());
 
-    for (size_t i = 0, n = inputs.size(); i < n; ++i) {
-        auto bound = mattress::cast(inputs[i].cast<uintptr_t>());
-        combined.push_back(bound->ptr);
+    for (I<decltype(nmats)> i = 0; i < nmats; ++i) {
+        auto bound = mattress::cast(inputs[i].cast<std::uintptr_t>());
+        combined[i] = bound->ptr;
         originals[i] = bound->original; 
     }
 
     auto tmp = std::make_unique<mattress::BoundMatrix>();
-    tmp->ptr = tatami::make_DelayedBind(std::move(combined), along == 0);
+    tmp->ptr.reset(new tatami::DelayedBind<mattress::MatrixValue, mattress::MatrixIndex>(std::move(combined), along == 0));
     tmp->original = std::move(originals);
     return mattress::cast(tmp.release());
 }

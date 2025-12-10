@@ -11,8 +11,8 @@
 #include <cstdint>
 
 template<typename Type_>
-uintptr_t initialize_dense_matrix_internal(mattress::MatrixIndex nr, mattress::MatrixIndex nc, const pybind11::array& buffer) {
-    size_t expected = static_cast<size_t>(nr) * static_cast<size_t>(nc);
+std::uintptr_t initialize_dense_matrix_internal(const mattress::MatrixIndex nr, const mattress::MatrixIndex nc, const pybind11::array& buffer) {
+    const auto expected = sanisizer::product<std::size_t>(nr, nc); // we'll eventually need this as a size_t in ArrayView(), so might as well.
     if (buffer.size() != expected) {
         throw std::runtime_error("unexpected size for the dense matrix buffer");
     }
@@ -30,38 +30,47 @@ uintptr_t initialize_dense_matrix_internal(mattress::MatrixIndex nr, mattress::M
     auto tmp = std::make_unique<mattress::BoundMatrix>();
     auto ptr = get_numpy_array_data<Type_>(buffer);
     tatami::ArrayView<Type_> view(ptr, expected);
-    tmp->ptr.reset(new tatami::DenseMatrix<mattress::MatrixValue, mattress::MatrixIndex, decltype(view)>(nr, nc, std::move(view), byrow));
+    tmp->ptr.reset(new tatami::DenseMatrix<mattress::MatrixValue, mattress::MatrixIndex, I<decltype(view)> >(nr, nc, std::move(view), byrow));
     tmp->original = buffer;
 
     return mattress::cast(tmp.release());
 }
 
-uintptr_t initialize_dense_matrix(mattress::MatrixIndex nr, mattress::MatrixIndex nc, const pybind11::array& buffer) {
+std::uintptr_t initialize_dense_matrix(const mattress::MatrixIndex nr, const mattress::MatrixIndex nc, const pybind11::array& buffer) {
     // Don't make any kind of copy of buffer to coerce the type or storage
     // order, as this should be handled by the caller; we don't provide any
     // protection from GC for the arrays referenced by the views. 
     auto dtype = buffer.dtype();
 
     if (dtype.is(pybind11::dtype::of<double>())) {
-        return initialize_dense_matrix_internal<  double>(nr, nc, buffer);
+        return initialize_dense_matrix_internal<double>(nr, nc, buffer);
+
     } else if (dtype.is(pybind11::dtype::of<float>())) {
-        return initialize_dense_matrix_internal<   float>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<int64_t>())) {
-        return initialize_dense_matrix_internal< int64_t>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<int32_t>())) {
-        return initialize_dense_matrix_internal< int32_t>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<int16_t>())) {
+        return initialize_dense_matrix_internal<float>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::int64_t>())) {
+        return initialize_dense_matrix_internal<std::int64_t>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::int32_t>())) {
+        return initialize_dense_matrix_internal<std::int32_t>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::int16_t>())) {
         return initialize_dense_matrix_internal< int16_t>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<int8_t>())) {
-        return initialize_dense_matrix_internal<  int8_t>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<uint64_t>())) {
-        return initialize_dense_matrix_internal<uint64_t>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<uint32_t>())) {
-        return initialize_dense_matrix_internal<uint32_t>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<uint16_t>())) {
-        return initialize_dense_matrix_internal<uint16_t>(nr, nc, buffer);
-    } else if (dtype.is(pybind11::dtype::of<uint8_t>())) {
-        return initialize_dense_matrix_internal< uint8_t>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::int8_t>())) {
+        return initialize_dense_matrix_internal<std::int8_t>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::uint64_t>())) {
+        return initialize_dense_matrix_internal<std::uint64_t>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::uint32_t>())) {
+        return initialize_dense_matrix_internal<std::uint32_t>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::uint16_t>())) {
+        return initialize_dense_matrix_internal<std::uint16_t>(nr, nc, buffer);
+
+    } else if (dtype.is(pybind11::dtype::of<std::uint8_t>())) {
+        return initialize_dense_matrix_internal<std::uint8_t>(nr, nc, buffer);
     }
 
     throw std::runtime_error("unrecognized array type '" + std::string(dtype.kind(), 1) + std::to_string(dtype.itemsize()) + "' for dense matrix initialization");

@@ -4,13 +4,16 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/numpy.h"
 
+#include <cstddef>
+#include <cstdint>
+
 #include "tatami_stats/tatami_stats.hpp"
 
-void free_mattress(uintptr_t ptr) {
+void free_mattress(std::uintptr_t ptr) {
     delete mattress::cast(ptr);
 }
 
-pybind11::tuple extract_dim(uintptr_t ptr) {
+pybind11::tuple get_dim(std::uintptr_t ptr) {
     const auto& mat = mattress::cast(ptr)->ptr;
     pybind11::tuple output(2);
     output[0] = mat->nrow();
@@ -18,16 +21,16 @@ pybind11::tuple extract_dim(uintptr_t ptr) {
     return output;
 }
 
-bool extract_sparse(uintptr_t ptr) {
+bool get_sparse(std::uintptr_t ptr) {
     const auto& mat = mattress::cast(ptr)->ptr;
     return mat->is_sparse();
 }
 
-pybind11::array_t<mattress::MatrixValue> extract_row(uintptr_t ptr, mattress::MatrixIndex r) {
+pybind11::array_t<mattress::MatrixValue> extract_row(std::uintptr_t ptr, mattress::MatrixIndex r) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->ncol());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    auto ext = tatami::consecutive_extractor<false, mattress::MatrixValue, mattress::MatrixIndex>(mat.get(), true, r, 1);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto ext = tatami::consecutive_extractor<false, mattress::MatrixValue, mattress::MatrixIndex>(*mat, true, r, 1);
     auto out = ext->fetch(optr);
     tatami::copy_n(out, output.size(), optr);
     return output;
@@ -35,9 +38,9 @@ pybind11::array_t<mattress::MatrixValue> extract_row(uintptr_t ptr, mattress::Ma
 
 pybind11::array_t<mattress::MatrixValue> extract_column(uintptr_t ptr, mattress::MatrixIndex c) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->nrow());
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
     auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    auto ext = tatami::consecutive_extractor<false, mattress::MatrixValue, mattress::MatrixIndex>(mat.get(), false, c, 1);
+    auto ext = tatami::consecutive_extractor<false, mattress::MatrixValue, mattress::MatrixIndex>(*mat, false, c, 1);
     auto out = ext->fetch(optr);
     tatami::copy_n(out, output.size(), optr);
     return output;
@@ -45,114 +48,116 @@ pybind11::array_t<mattress::MatrixValue> extract_column(uintptr_t ptr, mattress:
 
 /** Stats **/
 
-pybind11::array_t<mattress::MatrixValue> compute_column_sums(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_column_sums(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->ncol());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::sums::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::sums::apply(false, mat.get(), optr, opt);
+    tatami_stats::sums::apply(false, *mat, optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_row_sums(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_row_sums(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->nrow());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::sums::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::sums::apply(true, mat.get(), optr, opt);
+    tatami_stats::sums::apply(true, *mat, optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_column_variances(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_column_variances(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->ncol());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::variances::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::variances::apply(false, mat.get(), optr, opt);
+    tatami_stats::variances::apply(false, *mat, optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_row_variances(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_row_variances(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->nrow());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::variances::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::variances::apply(true, mat.get(), optr, opt);
+    tatami_stats::variances::apply(true, *mat, optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_column_medians(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_column_medians(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->ncol());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::medians::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::medians::apply(false, mat.get(), optr, opt);
+    tatami_stats::medians::apply(false, *mat, optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_row_medians(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_row_medians(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->nrow());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::medians::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::medians::apply(true, mat.get(), optr, opt);
+    tatami_stats::medians::apply(true, *mat, optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_column_mins(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_column_mins(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->ncol());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::ranges::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::ranges::apply(false, mat.get(), optr, static_cast<mattress::MatrixValue*>(NULL), opt);
+    tatami_stats::ranges::apply(false, *mat, optr, static_cast<mattress::MatrixValue*>(NULL), opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_row_mins(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_row_mins(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->nrow());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::ranges::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::ranges::apply(true, mat.get(), optr, static_cast<mattress::MatrixValue*>(NULL), opt);
+    tatami_stats::ranges::apply(true, *mat, optr, static_cast<mattress::MatrixValue*>(NULL), opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_column_maxs(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_column_maxs(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->ncol());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::ranges::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::ranges::apply(false, mat.get(), static_cast<mattress::MatrixValue*>(NULL), optr, opt);
+    tatami_stats::ranges::apply(false, *mat, static_cast<mattress::MatrixValue*>(NULL), optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_row_maxs(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_row_maxs(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> output(mat->nrow());
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    const auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
     tatami_stats::ranges::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::ranges::apply(true, mat.get(), static_cast<mattress::MatrixValue*>(NULL), optr, opt);
+    tatami_stats::ranges::apply(true, *mat, static_cast<mattress::MatrixValue*>(NULL), optr, opt);
     return output;
 }
 
-pybind11::tuple compute_row_ranges(uintptr_t ptr, int num_threads) {
+pybind11::tuple compute_row_ranges(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> mnout(mat->nrow()), mxout(mat->nrow());
-    auto mnptr = static_cast<mattress::MatrixValue*>(mnout.request().ptr);
-    auto mxptr = static_cast<mattress::MatrixValue*>(mxout.request().ptr);
+    auto mnout = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    auto mxout = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->nrow());
+    const auto mnptr = static_cast<mattress::MatrixValue*>(mnout.request().ptr);
+    const auto mxptr = static_cast<mattress::MatrixValue*>(mxout.request().ptr);
+
     tatami_stats::ranges::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::ranges::apply(true, mat.get(), mnptr, mxptr, opt);
+    tatami_stats::ranges::apply(true, *mat, mnptr, mxptr, opt);
 
     pybind11::tuple output(2);
     output[0] = mnout;
@@ -160,14 +165,16 @@ pybind11::tuple compute_row_ranges(uintptr_t ptr, int num_threads) {
     return output;
 }
 
-pybind11::tuple compute_column_ranges(uintptr_t ptr, int num_threads) {
+pybind11::tuple compute_column_ranges(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixValue> mnout(mat->ncol()), mxout(mat->ncol());
-    auto mnptr = static_cast<mattress::MatrixValue*>(mnout.request().ptr);
-    auto mxptr = static_cast<mattress::MatrixValue*>(mxout.request().ptr);
+    auto mnout = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    auto mxout = sanisizer::create<pybind11::array_t<mattress::MatrixValue> >(mat->ncol());
+    const auto mnptr = static_cast<mattress::MatrixValue*>(mnout.request().ptr);
+    const auto mxptr = static_cast<mattress::MatrixValue*>(mxout.request().ptr);
+
     tatami_stats::ranges::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::ranges::apply(false, mat.get(), mnptr, mxptr, opt);
+    tatami_stats::ranges::apply(false, *mat, mnptr, mxptr, opt);
 
     pybind11::tuple output(2);
     output[0] = mnout;
@@ -175,185 +182,174 @@ pybind11::tuple compute_column_ranges(uintptr_t ptr, int num_threads) {
     return output;
 }
 
-pybind11::array_t<mattress::MatrixIndex> compute_row_nan_counts(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixIndex> compute_row_nan_counts(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixIndex> output(mat->nrow());
-    auto optr = static_cast<mattress::MatrixIndex*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixIndex> >(mat->nrow());
+    const auto optr = static_cast<mattress::MatrixIndex*>(output.request().ptr);
     tatami_stats::counts::nan::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::counts::nan::apply(true, mat.get(), optr, opt);
+    tatami_stats::counts::nan::apply(true, *mat, optr, opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixIndex> compute_column_nan_counts(uintptr_t ptr, int num_threads) {
+pybind11::array_t<mattress::MatrixIndex> compute_column_nan_counts(std::uintptr_t ptr, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    pybind11::array_t<mattress::MatrixIndex> output(mat->ncol());
-    auto optr = static_cast<mattress::MatrixIndex*>(output.request().ptr);
+    auto output = sanisizer::create<pybind11::array_t<mattress::MatrixIndex> >(mat->ncol());
+    const auto optr = static_cast<mattress::MatrixIndex*>(output.request().ptr);
     tatami_stats::counts::nan::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::counts::nan::apply(false, mat.get(), optr, opt);
+    tatami_stats::counts::nan::apply(false, *mat, optr, opt);
     return output;
 }
 
 /** Grouped stats **/
 
-pybind11::array_t<mattress::MatrixValue> compute_row_sums_by_group(uintptr_t ptr, const pybind11::array& grouping, int num_threads) {
-    const auto& mat = mattress::cast(ptr)->ptr;
-    size_t ncol = mat->ncol();
-    size_t nrow = mat->nrow();
+typedef pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> ColumnMajorMatrix;
 
-    auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
-    if (grouping.size() != ncol) {
+template<typename Rows_, typename Columns_>
+ColumnMajorMatrix allocate_output_matrix(Rows_ nrow, Columns_ ncol) {
+    sanisizer::product<I<decltype(std::declval<ColumnMajorMatrix>().size())> >(nrow, ncol); // check that this allocation doesn't overflow pybind's internal size_type.
+    return ColumnMajorMatrix({ static_cast<std::size_t>(nrow), static_cast<std::size_t>(ncol) });
+}
+
+template<typename Rows_, typename Columns_>
+auto allocate_output_ptrs(ColumnMajorMatrix& x, Rows_ nrow, Columns_ ncol) {
+    sanisizer::product<std::size_t>(nrow, ncol); // check that this allocation doesn't overflow when accessed by raw pointers.
+    const auto xptr = static_cast<mattress::MatrixValue*>(x.request().ptr);
+    auto ptrs = sanisizer::create<std::vector<mattress::MatrixValue*> >(ncol);
+    for (I<decltype(ncol)> c = 0; c < ncol; ++c) {
+        ptrs[c] = xptr + sanisizer::product_unsafe<std::size_t>(c, nrow);
+    }
+    return ptrs;
+}
+
+pybind11::array_t<mattress::MatrixValue> compute_row_sums_by_group(std::uintptr_t ptr, const pybind11::array& grouping, int num_threads) {
+    const auto& mat = mattress::cast(ptr)->ptr;
+    const auto nrow = mat->nrow();
+    const auto ncol = mat->ncol();
+
+    const auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
+    if (!sanisizer::is_equal(grouping.size(), ncol)) {
         throw std::runtime_error("'grouping' should have length equal to the number of columns");
     }
 
-    size_t ngroups = tatami_stats::total_groups(gptr, ncol);
-    pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> output({ nrow, ngroups });
-
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    std::vector<mattress::MatrixValue*> ptrs(ngroups);
-    for (size_t g = 0; g < ngroups; ++g) {
-        ptrs[g] = optr + g * nrow;
-    }
+    const auto ngroups = tatami_stats::total_groups(gptr, ncol);
+    auto output = allocate_output_matrix(nrow, ngroups);
+    auto ptrs = allocate_output_ptrs(output, nrow, ngroups);
 
     tatami_stats::grouped_sums::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::grouped_sums::apply(true, mat.get(), gptr, ngroups, ptrs.data(), opt);
+    tatami_stats::grouped_sums::apply(true, *mat, gptr, ngroups, ptrs.data(), opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_column_sums_by_group(uintptr_t ptr, const pybind11::array& grouping, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_column_sums_by_group(std::uintptr_t ptr, const pybind11::array& grouping, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    size_t nrow = mat->nrow();
-    size_t ncol = mat->ncol();
+    const auto nrow = mat->nrow();
+    const auto ncol = mat->ncol();
 
     auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
-    if (grouping.size() != nrow) {
+    if (!sanisizer::is_equal(grouping.size(), nrow)) {
         throw std::runtime_error("'grouping' should have length equal to the number of rows");
     }
 
-    size_t ngroups = tatami_stats::total_groups(gptr, nrow);
-    pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> output({ ncol, ngroups });
-
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    std::vector<mattress::MatrixValue*> ptrs(ngroups);
-    for (size_t g = 0; g < ngroups; ++g) {
-        ptrs[g] = optr + g * ncol;
-    }
+    const auto ngroups = tatami_stats::total_groups(gptr, nrow);
+    auto output = allocate_output_matrix(ncol, ngroups);
+    auto ptrs = allocate_output_ptrs(output, ncol, ngroups);
 
     tatami_stats::grouped_sums::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::grouped_sums::apply(false, mat.get(), gptr, ngroups, ptrs.data(), opt);
+    tatami_stats::grouped_sums::apply(false, *mat, gptr, ngroups, ptrs.data(), opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_row_variances_by_group(uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_row_variances_by_group(std::uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    size_t ncol = mat->ncol();
-    size_t nrow = mat->nrow();
+    const auto nrow = mat->nrow();
+    const auto ncol = mat->ncol();
 
-    auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
-    if (grouping.size() != ncol) {
+    const auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
+    if (!sanisizer::is_equal(grouping.size(), ncol)) {
         throw std::runtime_error("'grouping' should have length equal to the number of columns");
     }
 
-    auto group_sizes = tatami_stats::tabulate_groups<mattress::MatrixIndex, mattress::MatrixIndex>(gptr, ncol);
-    size_t ngroups = group_sizes.size();
-    pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> output({ nrow, ngroups });
-
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    std::vector<mattress::MatrixValue*> ptrs(ngroups);
-    for (size_t g = 0; g < ngroups; ++g) {
-        ptrs[g] = optr + g * nrow;
-    }
+    const auto group_sizes = tatami_stats::tabulate_groups<mattress::MatrixIndex, mattress::MatrixIndex>(gptr, ncol);
+    const auto ngroups = group_sizes.size();
+    auto output = allocate_output_matrix(ncol, ngroups);
+    auto ptrs = allocate_output_ptrs(output, ncol, ngroups);
 
     tatami_stats::grouped_variances::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::grouped_variances::apply(true, mat.get(), gptr, ngroups, group_sizes.data(), ptrs.data(), opt);
+    tatami_stats::grouped_variances::apply(true, *mat, gptr, ngroups, group_sizes.data(), ptrs.data(), opt);
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> compute_column_variances_by_group(uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
+pybind11::array_t<mattress::MatrixValue> compute_column_variances_by_group(std::uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    size_t nrow = mat->nrow();
-    size_t ncol = mat->ncol();
+    const auto nrow = mat->nrow();
+    const auto ncol = mat->ncol();
+
+    const auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
+    if (!sanisizer::is_equal(grouping.size(), nrow)) {
+        throw std::runtime_error("'grouping' should have length equal to the number of rows");
+    }
+
+    const auto group_sizes = tatami_stats::tabulate_groups<mattress::MatrixIndex, mattress::MatrixIndex>(gptr, nrow);
+    const auto ngroups = group_sizes.size();
+    auto output = allocate_output_matrix(ncol, ngroups);
+    auto ptrs = allocate_output_ptrs(output, ncol, ngroups);
+
+    tatami_stats::grouped_variances::Options opt;
+    opt.num_threads = num_threads;
+    tatami_stats::grouped_variances::apply(false, *mat, grouping.data(), ngroups, group_sizes.data(), ptrs.data(), opt);
+    return output;
+}
+
+pybind11::array_t<mattress::MatrixValue> compute_row_medians_by_group(std::uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
+    const auto& mat = mattress::cast(ptr)->ptr;
+    const auto ncol = mat->ncol();
+    const auto nrow = mat->nrow();
 
     auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
-    if (grouping.size() != nrow) {
+    if (!sanisizer::is_equal(grouping.size(), ncol)) {
+        throw std::runtime_error("'grouping' should have length equal to the number of columns");
+    }
+
+    const auto group_sizes = tatami_stats::tabulate_groups<mattress::MatrixIndex, mattress::MatrixIndex>(gptr, ncol);
+    const auto ngroups = group_sizes.size();
+    auto output = allocate_output_matrix(nrow, ngroups);
+    auto ptrs = allocate_output_ptrs(output, nrow, ngroups);
+
+    tatami_stats::grouped_medians::Options opt;
+    opt.num_threads = num_threads;
+    tatami_stats::grouped_medians::apply(true, *mat, gptr, group_sizes, ptrs.data(), opt);
+    return output;
+}
+
+pybind11::array_t<mattress::MatrixValue> compute_column_medians_by_group(std::uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
+    const auto& mat = mattress::cast(ptr)->ptr;
+    const auto nrow = mat->nrow();
+    const auto ncol = mat->ncol();
+
+    auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
+    if (!sanisizer::is_equal(grouping.size(), nrow)) {
         throw std::runtime_error("'grouping' should have length equal to the number of rows");
     }
 
     auto group_sizes = tatami_stats::tabulate_groups<mattress::MatrixIndex, mattress::MatrixIndex>(gptr, nrow);
-    size_t ngroups = group_sizes.size();
-    pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> output({ ncol, ngroups });
-
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    std::vector<mattress::MatrixValue*> ptrs(ngroups);
-    for (size_t g = 0; g < ngroups; ++g) {
-        ptrs[g] = optr + g * ncol;
-    }
-
-    tatami_stats::grouped_variances::Options opt;
-    opt.num_threads = num_threads;
-    tatami_stats::grouped_variances::apply(false, mat.get(), grouping.data(), ngroups, group_sizes.data(), ptrs.data(), opt);
-    return output;
-}
-
-pybind11::array_t<mattress::MatrixValue> compute_row_medians_by_group(uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
-    const auto& mat = mattress::cast(ptr)->ptr;
-    size_t ncol = mat->ncol();
-    size_t nrow = mat->nrow();
-
-    auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
-    if (grouping.size() != ncol) {
-        throw std::runtime_error("'grouping' should have length equal to the number of columns");
-    }
-
-    auto group_sizes = tatami_stats::tabulate_groups<mattress::MatrixIndex, mattress::MatrixIndex>(gptr, ncol);
-    size_t ngroups = group_sizes.size();
-    pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> output({ nrow, ngroups });
-
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    std::vector<mattress::MatrixValue*> ptrs(ngroups);
-    for (size_t g = 0; g < ngroups; ++g) {
-        ptrs[g] = optr + g * nrow;
-    }
+    const auto ngroups = group_sizes.size();
+    auto output = allocate_output_matrix(ncol, ngroups);
+    auto ptrs = allocate_output_ptrs(output, ncol, ngroups);
 
     tatami_stats::grouped_medians::Options opt;
     opt.num_threads = num_threads;
-    tatami_stats::grouped_medians::apply(true, mat.get(), gptr, group_sizes, ptrs.data(), opt);
-    return output;
-}
-
-pybind11::array_t<mattress::MatrixValue> compute_column_medians_by_group(uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
-    const auto& mat = mattress::cast(ptr)->ptr;
-    size_t nrow = mat->nrow();
-    size_t ncol = mat->ncol();
-
-    auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
-    if (grouping.size() != nrow) {
-        throw std::runtime_error("'grouping' should have length equal to the number of rows");
-    }
-
-    auto group_sizes = tatami_stats::tabulate_groups<mattress::MatrixIndex, mattress::MatrixIndex>(gptr, nrow);
-    size_t ngroups = group_sizes.size();
-    pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> output({ ncol, ngroups });
-
-    auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    std::vector<mattress::MatrixValue*> ptrs(ngroups);
-    for (size_t g = 0; g < ngroups; ++g) {
-        ptrs[g] = optr + g * ncol;
-    }
-
-    tatami_stats::grouped_medians::Options opt;
-    opt.num_threads = num_threads;
-    tatami_stats::grouped_medians::apply(false, mat.get(), gptr, group_sizes, ptrs.data(), opt);
+    tatami_stats::grouped_medians::apply(false, *mat, gptr, group_sizes, ptrs.data(), opt);
     return output;
 }
 
 /** Extraction **/
 
-pybind11::array_t<mattress::MatrixValue> extract_dense_subset(uintptr_t ptr, bool row_noop, const pybind11::array& row_sub, bool col_noop, const pybind11::array& col_sub) {
+pybind11::array_t<mattress::MatrixValue> extract_dense_subset(std::uintptr_t ptr, bool row_noop, const pybind11::array& row_sub, bool col_noop, const pybind11::array& col_sub) {
     auto mat = mattress::cast(ptr)->ptr;
 
     if (!row_noop) {
@@ -368,14 +364,14 @@ pybind11::array_t<mattress::MatrixValue> extract_dense_subset(uintptr_t ptr, boo
         mat.swap(tmp);
     }
 
-    size_t NR = mat->nrow(), NC = mat->ncol();
-    pybind11::array_t<mattress::MatrixValue, pybind11::array::f_style> output({ NR, NC });
+    const auto NR = mat->nrow(), NC = mat->ncol();
+    auto output = allocate_output_matrix(NR, NC);
     auto optr = static_cast<mattress::MatrixValue*>(output.request().ptr);
-    tatami::convert_to_dense(mat.get(), false, optr);
+    tatami::convert_to_dense(*mat, false, optr, tatami::ConvertToDenseOptions{});
     return output;
 }
 
-pybind11::object extract_sparse_subset(uintptr_t ptr, bool row_noop, const pybind11::array& row_sub, bool col_noop, const pybind11::array& col_sub) {
+pybind11::object extract_sparse_subset(std::uintptr_t ptr, bool row_noop, const pybind11::array& row_sub, bool col_noop, const pybind11::array& col_sub) {
     auto mat = mattress::cast(ptr)->ptr;
 
     if (!row_noop) {
@@ -390,26 +386,28 @@ pybind11::object extract_sparse_subset(uintptr_t ptr, bool row_noop, const pybin
         mat.swap(tmp);
     }
 
-    size_t NR = mat->nrow(), NC = mat->ncol();
-    pybind11::list content(NC);
+    const auto NR = mat->nrow(), NC = mat->ncol();
+    auto content = sanisizer::create<pybind11::list>(NC);
     if (mat->prefer_rows()) {
-        std::vector<std::vector<mattress::MatrixValue> > vcollection(NC);
-        std::vector<std::vector<mattress::MatrixIndex> > icollection(NC);
+        auto vcollection = sanisizer::create<std::vector<std::vector<mattress::MatrixValue> > >(NC);
+        auto icollection = sanisizer::create<std::vector<std::vector<mattress::MatrixIndex> > >(NC);
+        sanisizer::cast<I<decltype(vcollection.front().size())> >(NR);
+        sanisizer::cast<I<decltype(icollection.front().size())> >(NR);
 
-        auto ext = tatami::consecutive_extractor<true, mattress::MatrixValue, mattress::MatrixIndex>(mat.get(), true, 0, NR);
-        std::vector<mattress::MatrixValue> vbuffer(NC);
-        std::vector<mattress::MatrixIndex> ibuffer(NC);
+        auto ext = tatami::consecutive_extractor<true, mattress::MatrixValue, mattress::MatrixIndex>(*mat, true, 0, NR);
+        auto vbuffer = sanisizer::create<std::vector<mattress::MatrixValue> >(NC);
+        auto ibuffer = sanisizer::create<std::vector<mattress::MatrixIndex> >(NC);
 
-        for (size_t r = 0; r < NR; ++r) {
-            auto info = ext->fetch(vbuffer.data(), ibuffer.data());
-            for (int i = 0; i < info.number; ++i) {
-                auto c = info.index[i];
+        for (I<decltype(NR)> r = 0; r < NR; ++r) {
+            const auto info = ext->fetch(vbuffer.data(), ibuffer.data());
+            for (I<decltype(info.number)> i = 0; i < info.number; ++i) {
+                const auto c = info.index[i];
                 vcollection[c].push_back(info.value[i]);
                 icollection[c].push_back(r);
             }
         }
 
-        for (size_t c = 0; c < NC; ++c) {
+        for (I<decltype(NC)> c = 0; c < NC; ++c) {
             if (vcollection[c].size()) {
                 pybind11::list tmp(2);
                 tmp[0] = pybind11::array_t<mattress::MatrixIndex>(icollection[c].size(), icollection[c].data());
@@ -421,11 +419,11 @@ pybind11::object extract_sparse_subset(uintptr_t ptr, bool row_noop, const pybin
         }
 
     } else {
-        auto ext = tatami::consecutive_extractor<true, mattress::MatrixValue, mattress::MatrixIndex>(mat.get(), false, 0, NC);
-        std::vector<mattress::MatrixValue> vbuffer(NC);
-        std::vector<mattress::MatrixIndex> ibuffer(NC);
+        auto ext = tatami::consecutive_extractor<true, mattress::MatrixValue, mattress::MatrixIndex>(*mat, false, 0, NC);
+        auto vbuffer = sanisizer::create<std::vector<mattress::MatrixValue> >(NC);
+        auto ibuffer = sanisizer::create<std::vector<mattress::MatrixIndex> >(NC);
 
-        for (size_t c = 0; c < NC; ++c) {
+        for (I<decltype(NC)> c = 0; c < NC; ++c) {
             auto info = ext->fetch(vbuffer.data(), ibuffer.data());
             if (info.number) {
                 pybind11::list tmp(2);
@@ -448,8 +446,8 @@ pybind11::object extract_sparse_subset(uintptr_t ptr, bool row_noop, const pybin
 void init_common(pybind11::module& m) {
     m.def("free_mattress", &free_mattress);
 
-    m.def("extract_dim", &extract_dim);
-    m.def("extract_sparse", &extract_sparse);
+    m.def("get_dim", &get_dim);
+    m.def("get_sparse", &get_sparse);
 
     m.def("extract_row", &extract_row);
     m.def("extract_column", &extract_column);

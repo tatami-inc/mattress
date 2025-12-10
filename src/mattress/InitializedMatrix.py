@@ -64,7 +64,7 @@ class InitializedMatrix:
     @property
     def shape(self) -> Tuple[int, int]:
         """Shape of the matrix, to masquerade as a NumPy-like object."""
-        return lib.extract_dim(self._ptr)
+        return lib.get_dim(self._ptr)
 
     @property
     def ptr(self) -> int:
@@ -105,7 +105,7 @@ class InitializedMatrix:
         Returns:
             True if matrix is sparse.
         """
-        return lib.extract_sparse(self._ptr); 
+        return lib.get_sparse(self._ptr);
 
     def row(self, r: int) -> numpy.ndarray:
         """Access a row from the tatami matrix. This method is primarily intended for troubleshooting and should not be

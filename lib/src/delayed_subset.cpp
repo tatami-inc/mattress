@@ -7,7 +7,7 @@
 #include <string>
 #include <cstdint>
 
-uintptr_t initialize_delayed_subset(uintptr_t ptr, const pybind11::array& subset, bool byrow) {
+std::uintptr_t initialize_delayed_subset(std::uintptr_t ptr, const pybind11::array& subset, const bool byrow) {
     auto bound = mattress::cast(ptr);
     auto sptr = check_numpy_array<mattress::MatrixIndex>(subset);
 
