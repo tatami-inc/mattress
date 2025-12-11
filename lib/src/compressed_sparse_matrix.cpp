@@ -19,7 +19,7 @@ std::uintptr_t initialize_compressed_sparse_matrix_raw(
 ) {
     tatami::ArrayView<Data_> dview(check_contiguous_numpy_array<Data_>(data), sanisizer::cast<std::size_t>(data.size()));
     tatami::ArrayView<Index_> iview(check_contiguous_numpy_array<Index_>(index), sanisizer::cast<std::size_t>(index.size()));
-    tatami::ArrayView<uint64_t> pview(check_numpy_array<std::uint64_t>(indptr), sanisizer::cast<std::size_t>(indptr.size()));
+    tatami::ArrayView<std::uint64_t> pview(check_numpy_array<std::uint64_t>(indptr), sanisizer::cast<std::size_t>(indptr.size()));
 
     auto tmp = std::make_unique<mattress::BoundMatrix>();
     tmp->ptr.reset(

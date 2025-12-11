@@ -55,7 +55,7 @@ std::uintptr_t initialize_dense_matrix(const mattress::MatrixIndex nr, const mat
         return initialize_dense_matrix_internal<std::int32_t>(nr, nc, buffer);
 
     } else if (dtype.is(pybind11::dtype::of<std::int16_t>())) {
-        return initialize_dense_matrix_internal< int16_t>(nr, nc, buffer);
+        return initialize_dense_matrix_internal<std::int16_t>(nr, nc, buffer);
 
     } else if (dtype.is(pybind11::dtype::of<std::int8_t>())) {
         return initialize_dense_matrix_internal<std::int8_t>(nr, nc, buffer);
