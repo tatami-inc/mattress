@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 0.4.0
+
+- Update to the latest version of the **tatami** interface in the **assorthead** package.
+- Support fallbacks to `tatami_python::UnknownMatrix` when a matrix class is unknown.
+
 ## Version 0.3.1
 
 - Cast to/from `uintptr_t` so that downstream packages aren't forced to rely on **pybind11** converters.
