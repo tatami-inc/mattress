@@ -13,7 +13,7 @@
 template<typename Type_>
 std::uintptr_t initialize_dense_matrix_internal(const mattress::MatrixIndex nr, const mattress::MatrixIndex nc, const pybind11::array& buffer) {
     const auto expected = sanisizer::product<std::size_t>(nr, nc); // we'll eventually need this as a size_t in ArrayView(), so might as well.
-    if (buffer.size() != expected) {
+    if (!sanisizer::is_equal(buffer.size(), expected)) {
         throw std::runtime_error("unexpected size for the dense matrix buffer");
     }
 
