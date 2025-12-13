@@ -26,6 +26,12 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
+      - name: Install latest assorthead
+        run: |
+            git clone https://github.com/BiocPy/assorthead
+            cd assorthead
+            python3.10 setup.py install --user
+
       - name: Get latest CMake
         uses: lukka/get-cmake@latest
 
