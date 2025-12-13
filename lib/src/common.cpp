@@ -265,7 +265,6 @@ pybind11::array_t<mattress::MatrixValue> compute_column_sums_by_group(std::uintp
 
 pybind11::array_t<mattress::MatrixValue> compute_row_variances_by_group(std::uintptr_t ptr, const pybind11::array_t<mattress::MatrixIndex>& grouping, int num_threads) {
     const auto& mat = mattress::cast(ptr)->ptr;
-    const auto nrow = mat->nrow();
     const auto ncol = mat->ncol();
 
     const auto gptr = check_numpy_array<mattress::MatrixIndex>(grouping);
