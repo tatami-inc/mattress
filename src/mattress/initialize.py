@@ -1,5 +1,5 @@
 from functools import singledispatch
-from typing import Any
+from typing import Any, Literal
 
 import numpy
 import delayedarray
@@ -15,13 +15,26 @@ __license__ = "MIT"
 
 
 @singledispatch
-def initialize(x: Any) -> InitializedMatrix:
+def initialize(
+    x: Any,
+    _unknown_action: Literal["none", "message", "warn", "error"] = "message",
+    **kwargs
+) -> InitializedMatrix:
     """Initialize an :py:class:`~mattress.InitializedMatrix.InitializedMatrix`
     from a Python matrix representation. This prepares the matrix for use in
     C++ code that can accept a ``tatami::Matrix`` instance.
 
     Args:
-        x: Any matrix-like object.
+        x:
+            Any matrix-like object.
+
+        _unknown_action:
+            Action to take upon encountering an unknown matrix.
+            If not ``error``, falls back to the unknown matrix handler with a message or warning.
+            Otherwise, raises an error.
+
+        kwargs:
+            Additional named arguments for individual methods.
 
     Raises:
         NotImplementedError: if x is not supported.
@@ -29,18 +42,28 @@ def initialize(x: Any) -> InitializedMatrix:
     Returns:
         A pointer to tatami object.
     """
-    raise NotImplementedError(
-        f"initialize is not supported for objects of class: {type(x)}"
-    )
+    if _unknown_action == "error":
+        raise NotImplementedError(f"'initialize' is not supported for {type(x)} objects")
+
+    if _unknown_action != "none":
+        msg = f"using the unknown matrix fallback for {type(x)}"
+        if _unknown_action == "message":
+            print(msg)
+        else:
+            import warnings
+            warnings.warn(msg, category=UserWarning)
+
+    # TODO: implement a default cache size in delayedarray. 
+    return InitializedMatrix(lib.initialize_unknown_matrix(x, int(1e8)))
 
 
 @initialize.register
-def _initialize_pointer(x: InitializedMatrix) -> InitializedMatrix:
+def _initialize_pointer(x: InitializedMatrix, **kwargs) -> InitializedMatrix:
     return x  # no-op
 
 
 @initialize.register
-def _initialize_numpy(x: numpy.ndarray) -> InitializedMatrix:
+def _initialize_numpy(x: numpy.ndarray, **kwargs) -> InitializedMatrix:
     if len(x.shape) != 2:
         raise ValueError("'x' should be a 2-dimensional array")
     x = _contiguify(x)
@@ -52,7 +75,7 @@ if is_package_installed("scipy"):
 
 
     @initialize.register
-    def _initialize_sparse_csr_array(x: scipy.sparse.csr_array) -> InitializedMatrix:
+    def _initialize_sparse_csr_array(x: scipy.sparse.csr_array, **kwargs) -> InitializedMatrix:
         dtmp = _contiguify(x.data)
         itmp = _contiguify(x.indices)
         indtmp = x.indptr.astype(numpy.uint64, copy=False, order="A")
@@ -60,12 +83,12 @@ if is_package_installed("scipy"):
 
 
     @initialize.register
-    def _initialize_sparse_csr_matrix(x: scipy.sparse.csr_matrix) -> InitializedMatrix:
+    def _initialize_sparse_csr_matrix(x: scipy.sparse.csr_matrix, **kwargs) -> InitializedMatrix:
         return _initialize_sparse_csr_array(x)
 
 
     @initialize.register
-    def _initialize_sparse_csc_array(x: scipy.sparse.csc_array) -> InitializedMatrix:
+    def _initialize_sparse_csc_array(x: scipy.sparse.csc_array, **kwargs) -> InitializedMatrix:
         dtmp = _contiguify(x.data)
         itmp = _contiguify(x.indices)
         indtmp = x.indptr.astype(numpy.uint64, copy=False, order="A")
@@ -78,12 +101,12 @@ if is_package_installed("scipy"):
 
 
 @initialize.register
-def _initialize_delayed_array(x: delayedarray.DelayedArray) -> InitializedMatrix:
-    return initialize(x.seed)
+def _initialize_delayed_array(x: delayedarray.DelayedArray, **kwargs) -> InitializedMatrix:
+    return initialize(x.seed, **kwargs)
 
 
 @initialize.register
-def _initialize_SparseNdarray(x: delayedarray.SparseNdarray) -> InitializedMatrix:
+def _initialize_SparseNdarray(x: delayedarray.SparseNdarray, **kwargs) -> InitializedMatrix:
     if x.contents is not None:
         dvecs = []
         ivecs = []
@@ -103,15 +126,15 @@ def _initialize_SparseNdarray(x: delayedarray.SparseNdarray) -> InitializedMatri
 
 
 @initialize.register
-def _initialize_delayed_unary_isometric_operation_simple(x: delayedarray.UnaryIsometricOpSimple) -> InitializedMatrix:
-    components = initialize(x.seed)
+def _initialize_delayed_unary_isometric_operation_simple(x: delayedarray.UnaryIsometricOpSimple, **kwargs) -> InitializedMatrix:
+    components = initialize(x.seed, **kwargs)
     ptr = lib.initialize_delayed_unary_isometric_operation_simple(components.ptr, x.operation)
     return InitializedMatrix(ptr)
 
 
 @initialize.register
-def _initialize_delayed_unary_isometric_operation_with_args(x: delayedarray.UnaryIsometricOpWithArgs) -> InitializedMatrix:
-    components = initialize(x.seed)
+def _initialize_delayed_unary_isometric_operation_with_args(x: delayedarray.UnaryIsometricOpWithArgs, **kwargs) -> InitializedMatrix:
+    components = initialize(x.seed, **kwargs)
 
     if isinstance(x.value, numpy.ndarray):
         contents = x.value.astype(numpy.float64, copy=False, order="A")
@@ -123,8 +146,8 @@ def _initialize_delayed_unary_isometric_operation_with_args(x: delayedarray.Unar
 
 
 @initialize.register
-def _initialize_delayed_subset(x: delayedarray.Subset) -> InitializedMatrix:
-    components = initialize(x.seed)
+def _initialize_delayed_subset(x: delayedarray.Subset, **kwargs) -> InitializedMatrix:
+    components = initialize(x.seed, **kwargs)
     for dim in range(2):
         current = x.subset[dim]
         noop, current = _sanitize_subset(current, x.shape[dim])
@@ -135,14 +158,14 @@ def _initialize_delayed_subset(x: delayedarray.Subset) -> InitializedMatrix:
 
 
 @initialize.register
-def _initialize_delayed_bind(x: delayedarray.Combine) -> InitializedMatrix:
-    collected = [initialize(s) for s in x.seeds]
+def _initialize_delayed_bind(x: delayedarray.Combine, **kwargs) -> InitializedMatrix:
+    collected = [initialize(s, **kwargs) for s in x.seeds]
     return InitializedMatrix(lib.initialize_delayed_bind([s.ptr for s in collected], x.along))
 
 
 @initialize.register
-def _initialize_delayed_transpose(x: delayedarray.Transpose) -> InitializedMatrix:
-    components = initialize(x.seed)
+def _initialize_delayed_transpose(x: delayedarray.Transpose, **kwargs) -> InitializedMatrix:
+    components = initialize(x.seed, **kwargs)
     if x.perm == (1, 0):
         ptr = lib.initialize_delayed_transpose(components.ptr)
         components = InitializedMatrix(ptr)
@@ -150,16 +173,16 @@ def _initialize_delayed_transpose(x: delayedarray.Transpose) -> InitializedMatri
 
 
 @initialize.register
-def _initialize_delayed_binary_isometric_operation(x: delayedarray.BinaryIsometricOp) -> InitializedMatrix:
-    lcomponents = initialize(x.left)
-    rcomponents = initialize(x.right)
+def _initialize_delayed_binary_isometric_operation(x: delayedarray.BinaryIsometricOp, **kwargs) -> InitializedMatrix:
+    lcomponents = initialize(x.left, **kwargs)
+    rcomponents = initialize(x.right, **kwargs)
     ptr = lib.initialize_delayed_binary_isometric_operation(lcomponents.ptr, rcomponents.ptr, x.operation)
     return InitializedMatrix(ptr)
 
 
 @initialize.register
-def _initialize_delayed_round(x: delayedarray.Round) -> InitializedMatrix:
-    components = initialize(x.seed)
+def _initialize_delayed_round(x: delayedarray.Round, **kwargs) -> InitializedMatrix:
+    components = initialize(x.seed, **kwargs)
     if x.decimals != 0:
         raise NotImplementedError("non-zero decimals in 'delayedarray.Round' are not yet supported")
     ptr = lib.initialize_delayed_unary_isometric_operation_simple(components.ptr, "round")

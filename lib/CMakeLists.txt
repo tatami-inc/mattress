@@ -20,6 +20,7 @@ pybind11_add_module(mattress
     src/delayed_transpose.cpp
     src/delayed_unary_isometric_operation_simple.cpp
     src/delayed_unary_isometric_operation_with_args.cpp
+    src/unknown_matrix.cpp
     src/init.cpp
 )
 

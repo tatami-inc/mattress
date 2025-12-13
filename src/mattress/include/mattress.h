@@ -1,9 +1,17 @@
-#ifndef RTATAMI_H
-#define RTATAMI_H
+#ifndef MATTRESS_H
+#define MATTRESS_H
+
+// Order of includes is very important here.
+#define TATAMI_PYTHON_PARALLELIZE_UNKNOWN
+#include "tatami_python/parallelize.hpp"
+#define TATAMI_CUSTOM_PARALLEL ::tatami_python::parallelize
+#include "tatami_python/tatami_python.hpp"
 
 #include "pybind11/pybind11.h"
 #include "tatami/tatami.hpp"
+
 #include <memory>
+#include <cstdint>
 
 namespace mattress {
 
@@ -15,7 +23,7 @@ typedef double MatrixValue;
 /**
  * Type of the matrix index.
  */
-typedef uint32_t MatrixIndex;
+typedef std::uint32_t MatrixIndex;
 
 /**
  * @brief Pointer to a **tatami** matrix.
@@ -40,7 +48,7 @@ struct BoundMatrix {
  * @param ptr A stored pointer.
  * @return Pointer to a `BoundMatrix`.
  */
-inline BoundMatrix* cast(uintptr_t ptr) {
+inline BoundMatrix* cast(std::uintptr_t ptr) {
     return static_cast<BoundMatrix*>(reinterpret_cast<void*>(ptr));
 }
 
@@ -48,8 +56,8 @@ inline BoundMatrix* cast(uintptr_t ptr) {
  * @param ptr Pointer to a `BoundMatrix`.
  * @return A stored pointer.
  */
-inline uintptr_t cast(const BoundMatrix* ptr) {
-    return reinterpret_cast<uintptr_t>(static_cast<void*>(const_cast<BoundMatrix*>(ptr)));
+inline std::uintptr_t cast(const BoundMatrix* ptr) {
+    return reinterpret_cast<std::uintptr_t>(static_cast<void*>(const_cast<BoundMatrix*>(ptr)));
 }
 
 }
