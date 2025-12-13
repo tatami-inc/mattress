@@ -53,8 +53,8 @@ def initialize(
             import warnings
             warnings.warn(msg, category=UserWarning)
 
-    # TODO: implement a default cache size in delayedarray. 
-    return InitializedMatrix(lib.initialize_unknown_matrix(x, int(1e8)))
+    buffer_size = delayedarray.default_buffer_size()
+    return InitializedMatrix(lib.initialize_unknown_matrix(x, int(buffer_size)))
 
 
 @initialize.register
@@ -116,8 +116,8 @@ def _initialize_delayed_array(x: delayedarray.DelayedArray, _unknown_action="mes
                 import warnings
                 warnings.warn(msg, category=UserWarning)
 
-        # TODO: implement a default cache size in delayedarray. 
-        return InitializedMatrix(lib.initialize_unknown_matrix(x, int(1e8)))
+        buffer_size = delayedarray.default_buffer_size()
+        return InitializedMatrix(lib.initialize_unknown_matrix(x, int(buffer_size)))
 
 
 @initialize.register
