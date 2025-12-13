@@ -30,7 +30,7 @@ jobs:
         run: |
             git clone https://github.com/BiocPy/assorthead
             cd assorthead
-            python3 setup.py install --user
+            pip install .
 
       - name: Get latest CMake
         uses: lukka/get-cmake@latest
