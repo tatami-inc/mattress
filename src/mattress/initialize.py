@@ -101,8 +101,23 @@ if is_package_installed("scipy"):
 
 
 @initialize.register
-def _initialize_delayed_array(x: delayedarray.DelayedArray, **kwargs) -> InitializedMatrix:
-    return initialize(x.seed, **kwargs)
+def _initialize_delayed_array(x: delayedarray.DelayedArray, _unknown_action="message", **kwargs) -> InitializedMatrix:
+    try:
+        return initialize(x.seed, _unknown_action=_unknown_action, **kwargs)
+    except Exception as e:
+        if _unknown_action == "error":
+            raise NotImplementedError(e)
+
+        if _unknown_action != "none":
+            msg = f"{str(e)}, using the unknown matrix fallback for {type(x)}"
+            if _unknown_action == "message":
+                print(msg)
+            else:
+                import warnings
+                warnings.warn(msg, category=UserWarning)
+
+        # TODO: implement a default cache size in delayedarray. 
+        return InitializedMatrix(lib.initialize_unknown_matrix(x, int(1e8)))
 
 
 @initialize.register

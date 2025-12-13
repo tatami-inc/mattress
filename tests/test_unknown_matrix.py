@@ -52,3 +52,20 @@ def test_unknown_matrix(capsys):
     with pytest.raises(NotImplementedError, match="not supported"):
         ptr = mattress.initialize(y, _unknown_action="error")
 
+
+def test_unknown_operation(capsys):
+    y = delayedarray.DelayedArray(numpy.random.rand(1000, 100))
+    y = numpy.round(y, decimals=2)
+
+    ptr = mattress.initialize(y)
+    captured = capsys.readouterr()
+    assert "unknown matrix fallback" in captured.out
+
+    assert all(ptr.row(0) == y[0, :])
+    assert all(ptr.column(1) == y[:, 1])
+    assert ptr.shape == (1000, 100)
+
+    with pytest.warns(UserWarning, match="unknown matrix fallback"):
+        ptr = mattress.initialize(y, _unknown_action="warn")
+    with pytest.raises(NotImplementedError, match="not yet supported"):
+        ptr = mattress.initialize(y, _unknown_action="error")
