@@ -3,8 +3,8 @@ mattress package
 
 .. automodule:: mattress
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------
@@ -14,13 +14,13 @@ mattress.InitializedMatrix module
 
 .. automodule:: mattress.InitializedMatrix
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 mattress.initialize module
 --------------------------
 
 .. automodule:: mattress.initialize
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
