@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.4.1
+
+- Bugfix to pass along `kwargs` for one of the `initialize()` methods.
+
 ## Version 0.4.0
 
 - Update to the latest version of the **tatami** interface in the **assorthead** package.

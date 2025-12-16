@@ -96,7 +96,7 @@ if is_package_installed("scipy"):
 
 
     @initialize.register
-    def _initialize_sparse_csc_matrix(x: scipy.sparse.csc_matrix) -> InitializedMatrix:
+    def _initialize_sparse_csc_matrix(x: scipy.sparse.csc_matrix, **kwargs) -> InitializedMatrix:
         return _initialize_sparse_csc_array(x)
 
 
