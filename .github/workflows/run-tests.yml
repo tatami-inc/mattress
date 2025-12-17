@@ -1,4 +1,4 @@
-name: Test the library
+name: Test package
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
       - name: Test with tox
         run: |
           pip install tox
-          tox
+          tox -vvv

@@ -10,7 +10,7 @@
 
 [![PyPI-Server](https://img.shields.io/pypi/v/mattress.svg)](https://pypi.org/project/mattress/)
 [![Monthly Downloads](https://static.pepy.tech/badge/mattress/month)](https://pepy.tech/project/mattress)
-![Unit tests](https://github.com/tatami-inc/mattress/actions/workflows/pypi-test.yml/badge.svg)
+![Unit tests](https://github.com/tatami-inc/mattress/actions/workflows/run-tests.yml/badge.svg)
 
 # Python bindings for tatami
 

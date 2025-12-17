@@ -6,6 +6,7 @@ project(mattress
     LANGUAGES CXX)
 
 # Defining the targets.
+find_package(Python ${PYBIND11_PYTHON_VERSION} EXACT COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
 
 # pybind11 method:
@@ -30,6 +31,9 @@ target_include_directories(mattress PRIVATE "../src/mattress/include")
 set_property(TARGET mattress PROPERTY CXX_STANDARD 17)
 
 target_link_libraries(mattress PRIVATE pybind11::pybind11)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(mattress PRIVATE -Wall -Wpedantic -Wextra)
+endif()
 
 set_target_properties(mattress PROPERTIES
     OUTPUT_NAME lib_mattress
