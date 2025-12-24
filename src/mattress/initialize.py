@@ -165,7 +165,7 @@ def _initialize_delayed_subset(x: delayedarray.Subset, **kwargs) -> InitializedM
     components = initialize(x.seed, **kwargs)
     for dim in range(2):
         current = x.subset[dim]
-        noop, current = _sanitize_subset(current, x.shape[dim])
+        noop, current = _sanitize_subset(current, x.seed.shape[dim])
         if not noop:
             ptr = lib.initialize_delayed_subset(components.ptr, current, dim == 0)
             components = InitializedMatrix(ptr)
