@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.4.2
+
+- Bugfix for the `initialize()` method on `Subset` objects when the subset is a contiguous block starts at zero.
+
 ## Version 0.4.1
 
 - Bugfix to pass along `kwargs` for one of the `initialize()` methods.
