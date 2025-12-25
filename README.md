@@ -16,9 +16,9 @@
 
 ## Overview
 
-The **mattress** package implements Python bindings to the [**tatami**](https://github.com/tatami-inc) C++ library for matrix representations.
+The **mattress** package implements Python bindings to the [**tatami**](https://github.com/tatami-inc/tatami) C++ library for matrix representations.
 Downstream packages can use **mattress** to develop C++ extensions that are interoperable with many different matrix classes, e.g., dense, sparse, delayed or file-backed.
-**mattress** is inspired by the [**beachmat**](https://bioconductor/packages/beachmat) Bioconductor package, which does the same thing for R packages.
+**mattress** is inspired by the [**beachmat**](https://bioconductor.org/packages/beachmat) Bioconductor package, which does the same thing for R packages.
 
 ## Instructions
 
@@ -38,7 +38,7 @@ or by adding a `target_include_directories()` in CMake, depending on the build s
 2. Call `mattress.initialize()` on a Python matrix object to wrap it in a **tatami**-compatible C++ representation. 
 This returns an `InitializedMatrix` with a `ptr` property that contains a pointer to the C++ matrix.
 3. Pass `ptr` to C++ code as a `uintptr_t` referencing a `tatami::Matrix`,
-which can be interrogated as described in the [**tatami** documentation](https://github.com/tatami-inc/tatami).
+which can be interrogated as described in the [**tatami** documentation](https://tatami-inc.github.io/tatami).
 
 So, for example, the C++ code in our downstream package might look like the code below:
 
