@@ -29,6 +29,11 @@ jobs:
       - name: Get latest CMake
         uses: lukka/get-cmake@latest
 
+      - name: Extract examples from docstrings
+        run: |
+          echo "def test_docstrings():" > tests/test_docstrings.py
+          cat src/mattress/*.py | sed "s/^/#/" | sed "s/^# *>>> /    /" >> tests/test_docstrings.py
+
       - name: Test with tox
         run: |
           pip install tox

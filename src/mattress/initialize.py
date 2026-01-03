@@ -20,9 +20,9 @@ def initialize(
     _unknown_action: Literal["none", "message", "warn", "error"] = "message",
     **kwargs
 ) -> InitializedMatrix:
-    """Initialize an :py:class:`~mattress.InitializedMatrix.InitializedMatrix`
-    from a Python matrix representation. This prepares the matrix for use in
-    C++ code that can accept a ``tatami::Matrix`` instance.
+    """
+    Initialize an :py:class:`~mattress.InitializedMatrix.InitializedMatrix` from a Python matrix representation.
+    This prepares the matrix for use in C++ code that can accept a ``mattress::BoundMatrix`` instance.
 
     Args:
         x:
@@ -37,10 +37,16 @@ def initialize(
             Additional named arguments for individual methods.
 
     Raises:
-        NotImplementedError: if x is not supported.
+        NotImplementedError: if no method is registered for the class of ``x`` and ``_unknown_action = "error"``.
 
     Returns:
-        A pointer to tatami object.
+        An :py:class:`~mattress.InitializedMatrix.InitializedMatrix` containing a pointer to ``mattress::BoundMatrix`` C++ object.
+
+    Examples:
+        >>> import numpy
+        >>> import mattress
+        >>> mat = numpy.random.rand(1000, 20)
+        >>> ptr = mattress.initialize(mat)
     """
     if _unknown_action == "error":
         raise NotImplementedError(f"'initialize' is not supported for {type(x)} objects")

@@ -56,3 +56,5 @@ src/mattress/lib_mattress.py
 .python-version
 *.doctree
 *.pickle
+
+tests/test_docstrings.py
