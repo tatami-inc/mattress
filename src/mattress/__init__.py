@@ -8,15 +8,16 @@ else:
 
 try:
     # Change here if project is renamed and does not equal the package name
-    dist_name = __name__
-    __version__ = version(dist_name)
+    _dist_name = __name__
+    __version__ = version(_dist_name)
 except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"
 finally:
     del version, PackageNotFoundError
 
-from .initialize import initialize
-from .InitializedMatrix import InitializedMatrix
+
+from ._initialize import initialize
+from ._InitializedMatrix import InitializedMatrix
 
 
 def includes() -> str:
@@ -29,3 +30,10 @@ def includes() -> str:
     import inspect
     dirname = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     return os.path.join(dirname, "include")
+
+
+# For proper documentation with sphinx.
+__all__ = []
+for _name in dir():
+    if not _name.startswith("_") and _name != "sys":
+        __all__.append(_name)

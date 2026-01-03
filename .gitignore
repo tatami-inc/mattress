@@ -48,7 +48,7 @@ docs/_build/*
 docs/html
 cover/*
 MANIFEST
-src/mattress/lib_mattress.py
+src/mattress/_lib_mattress.py
 
 # Per-project virtualenvs
 .venv*/

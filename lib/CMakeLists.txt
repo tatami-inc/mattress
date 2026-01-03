@@ -36,6 +36,6 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 set_target_properties(mattress PROPERTIES
-    OUTPUT_NAME lib_mattress
+    OUTPUT_NAME _lib_mattress
     PREFIX ""
 )

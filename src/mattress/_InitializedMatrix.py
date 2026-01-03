@@ -3,7 +3,7 @@ from typing import Tuple, Sequence, Optional
 import numpy
 import delayedarray
 
-from . import lib_mattress as lib
+from . import _lib_mattress as lib
 from ._utils import _sanitize_subset
 
 __author__ = "ltla, jkanche"

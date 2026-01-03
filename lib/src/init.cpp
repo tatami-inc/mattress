@@ -12,7 +12,7 @@ void init_delayed_unary_isometric_operation_simple(pybind11::module&);
 void init_delayed_unary_isometric_operation_with_args(pybind11::module&);
 void init_unknown_matrix(pybind11::module&);
 
-PYBIND11_MODULE(lib_mattress, m) {
+PYBIND11_MODULE(_lib_mattress, m) {
     init_common(m);
     init_dense_matrix(m);
     init_compressed_sparse_matrix(m);

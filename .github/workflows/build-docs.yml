@@ -26,7 +26,7 @@ jobs:
 
       - name: Build docs
         run: |
-          touch src/mattress/lib_mattress.py
+          touch src/mattress/_lib_mattress.py
           tox -e docs
 
       - name: GH Pages Deployment

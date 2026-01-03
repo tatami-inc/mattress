@@ -5,8 +5,8 @@ import numpy
 import delayedarray
 from biocutils.package_utils import is_package_installed
 
-from .InitializedMatrix import InitializedMatrix
-from . import lib_mattress as lib
+from ._InitializedMatrix import InitializedMatrix
+from . import _lib_mattress as lib
 from ._utils import _sanitize_subset, _contiguify
 
 __author__ = "jkanche"
