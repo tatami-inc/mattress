@@ -1,7 +1,9 @@
+from typing import Tuple, Sequence, Optional
+
 import numpy
 import delayedarray
+
 from . import lib_mattress as lib
-from typing import Tuple, Sequence
 from ._utils import _sanitize_subset
 
 __author__ = "ltla, jkanche"
@@ -124,12 +126,20 @@ class InitializedMatrix:
         """
         return numpy.dtype("float64")
 
-    def __array__(self) -> numpy.ndarray:
+    def __array__(self, dtype: Optional[numpy.dtype] = None, copy: Optional[bool] = None) -> numpy.ndarray:
         """
         Realize the underlying matrix into a dense NumPy array.
 
+        Args:
+            dtype:
+                Type of the output matrix.
+                If ``None``, defaults to a double-precision type.
+
+            copy:
+                Ignored, a copy is always made.
+
         Returns:
-            Contents of the underlying matrix.
+            Contents of the underlying matrix, cast to the specified ``dtype``.
 
         Examples:
             >>> import numpy
@@ -139,8 +149,10 @@ class InitializedMatrix:
             >>> ptr.__array__()
         """
         shape = self.shape;
-        return _extract_array(self, (range(shape[0]), range(shape[1])), sparse=False)
-
+        out = _extract_array(self, (range(shape[0]), range(shape[1])), sparse=False)
+        if dtype is not None and dtype != self.dtype:
+            out = out.astype(dtype)
+        return out
 
     def __DelayedArray_dask__(self) -> numpy.ndarray:
         """

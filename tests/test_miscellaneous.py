@@ -163,6 +163,20 @@ def test_DelayedArray_rewrap_sparse_csr():
     assert (np.array(sub) == y[:, 10:50].toarray()).all()
 
 
+def test_array_conversion():
+    y = np.random.rand(1000, 100) * 10
+    ptr = initialize(y)
+
+    out = ptr.__array__()
+    assert (out == y).all()
+
+    out = ptr.__array__(dtype=np.int32)
+    assert (out == y.astype(dtype=np.int32)).all()
+
+    out = ptr.__DelayedArray_dask__()
+    assert (out == y).all()
+
+
 def test_includes():
     import os
     import mattress
