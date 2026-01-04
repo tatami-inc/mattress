@@ -21,7 +21,7 @@ def initialize(
     **kwargs
 ) -> InitializedMatrix:
     """
-    Initialize an :py:class:`~mattress.InitializedMatrix.InitializedMatrix` from a Python matrix representation.
+    Initialize an :py:class:`~mattress.InitializedMatrix` from a Python matrix representation.
     This prepares the matrix for use in C++ code that can accept a ``mattress::BoundMatrix`` instance.
 
     Args:
@@ -40,7 +40,7 @@ def initialize(
         NotImplementedError: if no method is registered for the class of ``x`` and ``_unknown_action = "error"``.
 
     Returns:
-        An :py:class:`~mattress.InitializedMatrix.InitializedMatrix` containing a pointer to ``mattress::BoundMatrix`` C++ object.
+        An :py:class:`~mattress.InitializedMatrix` containing a pointer to ``mattress::BoundMatrix`` C++ object.
 
     Examples:
         >>> import numpy
