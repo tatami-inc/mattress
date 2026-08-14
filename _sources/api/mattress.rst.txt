@@ -5,22 +5,3 @@ mattress package
    :members:
    :show-inheritance:
    :undoc-members:
-
-Submodules
-----------
-
-mattress.InitializedMatrix module
----------------------------------
-
-.. automodule:: mattress.InitializedMatrix
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-mattress.initialize module
---------------------------
-
-.. automodule:: mattress.initialize
-   :members:
-   :show-inheritance:
-   :undoc-members:

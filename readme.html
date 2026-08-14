@@ -5,8 +5,8 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Contributing" href="contributing.html"><link rel="prev" title="Contents" href="index.html">
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2025.12.19 -->
-        <title>Python bindings for tatami - mattress 0.4.2 documentation</title>
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Python bindings for tatami - mattress 0.4.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -161,7 +161,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">mattress 0.4.2 documentation</div></a>
+      <a href="index.html"><div class="brand">mattress 0.4.3 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -182,7 +182,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">mattress 0.4.2 documentation</span>
+  <span class="sidebar-brand-text">mattress 0.4.3 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -254,9 +254,9 @@
 <h1>Python bindings for tatami<a class="headerlink" href="#python-bindings-for-tatami" title="Link to this heading">¶</a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
-<p>The <strong>mattress</strong> package implements Python bindings to the <a class="reference external" href="https://github.com/tatami-inc"><strong>tatami</strong></a> C++ library for matrix representations.
+<p>The <strong>mattress</strong> package implements Python bindings to the <a class="reference external" href="https://github.com/tatami-inc/tatami"><strong>tatami</strong></a> C++ library for matrix representations.
 Downstream packages can use <strong>mattress</strong> to develop C++ extensions that are interoperable with many different matrix classes, e.g., dense, sparse, delayed or file-backed.
-<strong>mattress</strong> is inspired by the <a class="reference external" href="https://bioconductor/packages/beachmat"><strong>beachmat</strong></a> Bioconductor package, which does the same thing for R packages.</p>
+<strong>mattress</strong> is inspired by the <a class="reference external" href="https://bioconductor.org/packages/beachmat"><strong>beachmat</strong></a> Bioconductor package, which does the same thing for R packages.</p>
 </section>
 <section id="instructions">
 <h2>Instructions<a class="headerlink" href="#instructions" title="Link to this heading">¶</a></h2>
@@ -274,7 +274,7 @@ or by adding a <code class="docutils literal notranslate"><span class="pre">targ
 <li><p>Call <code class="docutils literal notranslate"><span class="pre">mattress.initialize()</span></code> on a Python matrix object to wrap it in a <strong>tatami</strong>-compatible C++ representation.
 This returns an <code class="docutils literal notranslate"><span class="pre">InitializedMatrix</span></code> with a <code class="docutils literal notranslate"><span class="pre">ptr</span></code> property that contains a pointer to the C++ matrix.</p></li>
 <li><p>Pass <code class="docutils literal notranslate"><span class="pre">ptr</span></code> to C++ code as a <code class="docutils literal notranslate"><span class="pre">uintptr_t</span></code> referencing a <code class="docutils literal notranslate"><span class="pre">tatami::Matrix</span></code>,
-which can be interrogated as described in the <a class="reference external" href="https://github.com/tatami-inc/tatami"><strong>tatami</strong> documentation</a>.</p></li>
+which can be interrogated as described in the <a class="reference external" href="https://tatami-inc.github.io/tatami"><strong>tatami</strong> documentation</a>.</p></li>
 </ol>
 <p>So, for example, the C++ code in our downstream package might look like the code below:</p>
 <div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mattress.h&quot;</span>
@@ -480,9 +480,9 @@ This is achieved by storing a reference to the data in the <code class="docutils
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=ff822928"></script>
-    <script src="_static/doctools.js?v=9bcbadda"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+</div><script src="_static/documentation_options.js?v=5bfaad31"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>
