@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -28,6 +28,9 @@ jobs:
         run: |
           touch src/mattress/_lib_mattress.py
           tox -e docs
+
+      - name: Disable jekyll
+        run: touch ./docs/_build/html/.nojekyll
 
       - name: GH Pages Deployment
         uses: JamesIves/github-pages-deploy-action@v4
