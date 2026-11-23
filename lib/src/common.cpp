@@ -96,7 +96,7 @@ pybind11::array_t<mattress::MatrixValue> tatami_medians(std::uintptr_t ptr, bool
     return output;
 }
 
-pybind11::array_t<mattress::MatrixValue> tatami_ranges(std::uintptr_t ptr, bool row, int num_threads) {
+pybind11::tuple tatami_ranges(std::uintptr_t ptr, bool row, int num_threads) {
     tatami_stats::RangeOptions opt;
     opt.num_threads = num_threads;
     if (num_threads < 1) {
