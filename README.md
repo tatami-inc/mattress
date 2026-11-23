@@ -33,19 +33,19 @@ The aim is to allow package C++ code to accept [all types of matrix representati
 To achive this:
 
 1. Add `mattress.includes()` and `assorthead.includes()` to the compiler's include path. 
-This can be done through `include_dirs=` of the `Extension()` definition in `setup.py`
-or by adding a `target_include_directories()` in CMake, depending on the build system.
+   This can be done through `include_dirs=` of the `Extension()` definition in `setup.py`
+   or by adding a `target_include_directories()` in CMake, depending on the build system.
 2. Call `mattress.initialize()` on a Python matrix object to wrap it in a **tatami**-compatible C++ representation. 
-This returns an `InitializedMatrix` with a `ptr` property that contains a pointer to the C++ matrix.
+   This returns an `InitializedMatrix` with a `ptr` property that contains a pointer to the C++ matrix.
 3. Pass `ptr` to C++ code as a `uintptr_t` referencing a `tatami::Matrix`,
-which can be interrogated as described in the [**tatami** documentation](https://tatami-inc.github.io/tatami).
+   which can be interrogated as described in the [**tatami** documentation](https://tatami-inc.github.io/tatami).
 
 So, for example, the C++ code in our downstream package might look like the code below:
 
 ```cpp
 #include "mattress.h"
 
-int do_something(uintptr_t ptr) {
+int do_something(std::uintptr_t ptr) {
     const auto& mat_ptr = mattress::cast(ptr)->ptr;
     // Do something with the tatami interface.
     return 1;
@@ -128,22 +128,22 @@ See [below](#extending-to-custom-matrices) to extend `initialize()` to custom ma
 The `InitializedMatrix` instance returned by `initialize()` provides a few Python-visible methods for querying the C++ matrix.
 
 ```python
-init.nrow() // number of rows
-init.column(1) // contents of column 1
-init.sparse() // whether the matrix is sparse.
+init.nrow() # number of rows
+init.get(False, 0) # contents of column 1
+init.is_sparse() # whether the matrix is sparse.
 ```
 
 It also has a few methods for computing common statistics:
 
 ```python
-init.row_sums()
-init.column_variances(num_threads = 2)
+init.sum(True) # row sums
+init.variance(False, num_threads = 2) # column variances
 
 grouping = [i%3 for i in range(init.ncol())]
-init.row_medians_by_group(grouping)
+init.group_median(True, grouping) # row median for each group
 
-init.row_nan_counts()
-init.column_ranges()
+init.nan_count(True)
+init.range(False)
 ```
 
 These are mostly intended for non-intensive work or testing/debugging.
@@ -172,7 +172,7 @@ It is also more convenient as we don't have to carry around `x` to generate `ini
 ## Extending to custom matrices
 
 Developers can extend **mattress** to custom matrix classes by registering new methods with the `initialize()` generic.
-This should return a `InitializedMatrix` object containing a `uintptr_t` cast from a pointer to a `tatami::Matrix` (see [the included header](src/mattress/include/mattress.h)).
+This should return a `InitializedMatrix` object containing a pointer to a `tatami::Matrix` (see [the included header](src/mattress/include/mattress.h)).
 Once this is done, all calls to `initialize()` will be able to handle matrices of the newly registered types.
 
 ```python
@@ -182,6 +182,7 @@ import mattress
 @mattress.initialize.register
 def _initialize_my_custom_matrix(x: MyCustomMatrix):
     data = x.some_internal_data
+    # lib.initialize_custom is assumed to return a uintptr_t.
     return mattress.InitializedMatrix(lib.initialize_custom(data))
 ```
 
