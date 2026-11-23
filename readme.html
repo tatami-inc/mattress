@@ -5,10 +5,11 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Contributing" href="contributing.html"><link rel="prev" title="Contents" href="index.html">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>Python bindings for tatami - mattress 0.4.3 documentation</title>
+    <!-- Generated with Sphinx 9.2.0 and Furo 2025.12.19 -->
+        <title>Python bindings for tatami - mattress 0.5.0.dev1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx_autodoc_typehints.css?v=057ac668" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
     
     
@@ -161,7 +162,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="index.html"><div class="brand">mattress 0.4.3 documentation</div></a>
+      <a href="index.html"><div class="brand">mattress 0.5.0.dev1 documentation</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -182,7 +183,7 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
-  <span class="sidebar-brand-text">mattress 0.4.3 documentation</span>
+  <span class="sidebar-brand-text">mattress 0.5.0.dev1 documentation</span>
   
 </a><form class="sidebar-search-container" method="get" action="search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
@@ -277,17 +278,17 @@ This returns an <code class="docutils literal notranslate"><span class="pre">Ini
 which can be interrogated as described in the <a class="reference external" href="https://tatami-inc.github.io/tatami"><strong>tatami</strong> documentation</a>.</p></li>
 </ol>
 <p>So, for example, the C++ code in our downstream package might look like the code below:</p>
-<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;mattress.h&quot;</span>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">"mattress.h"</span>
 
-<span class="kt">int</span><span class="w"> </span><span class="nf">do_something</span><span class="p">(</span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">do_something</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="kt">uintptr_t</span><span class="w"> </span><span class="n">ptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="o">&amp;</span><span class="w"> </span><span class="n">mat_ptr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mattress</span><span class="o">::</span><span class="n">cast</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">ptr</span><span class="p">;</span>
 <span class="w">    </span><span class="c1">// Do something with the tatami interface.</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
 <span class="p">}</span>
 
-<span class="c1">// Assuming we&#39;re using pybind11, but any framework that can accept a uintptr_t is fine.</span>
+<span class="c1">// Assuming we're using pybind11, but any framework that can accept a uintptr_t is fine.</span>
 <span class="n">PYBIND11_MODULE</span><span class="p">(</span><span class="n">lib_downstream</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">&quot;do_something&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_something</span><span class="p">);</span>
+<span class="w">    </span><span class="n">m</span><span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"do_something"</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_something</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -318,10 +319,10 @@ which can be interrogated as described in the <a class="reference external" href
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparse</span> <span class="k">as</span> <span class="n">sp</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mattress</span><span class="w"> </span><span class="kn">import</span> <span class="n">initialize</span>
 
-<span class="n">xc</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csc&quot;</span><span class="p">)</span>
+<span class="n">xc</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"csc"</span><span class="p">)</span>
 <span class="n">init</span> <span class="o">=</span> <span class="n">initialize</span><span class="p">(</span><span class="n">xc</span><span class="p">)</span>
 
-<span class="n">xr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csc&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">xr</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"csc"</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">init2</span> <span class="o">=</span> <span class="n">initialize</span><span class="p">(</span><span class="n">xr</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -331,7 +332,7 @@ which can be interrogated as described in the <a class="reference external" href
 <span class="kn">from</span><span class="w"> </span><span class="nn">mattress</span><span class="w"> </span><span class="kn">import</span> <span class="n">initialize</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 
-<span class="n">xd</span> <span class="o">=</span> <span class="n">DelayedArray</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csc&quot;</span><span class="p">))</span>
+<span class="n">xd</span> <span class="o">=</span> <span class="n">DelayedArray</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"csc"</span><span class="p">))</span>
 <span class="n">xd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">xd</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
 
 <span class="n">init</span> <span class="o">=</span> <span class="n">initialize</span><span class="p">(</span><span class="n">xd</span><span class="p">)</span>
@@ -350,20 +351,20 @@ which can be interrogated as described in the <a class="reference external" href
 <section id="utility-methods">
 <h2>Utility methods<a class="headerlink" href="#utility-methods" title="Link to this heading">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">InitializedMatrix</span></code> instance returned by <code class="docutils literal notranslate"><span class="pre">initialize()</span></code> provides a few Python-visible methods for querying the C++ matrix.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">init</span><span class="o">.</span><span class="n">nrow</span><span class="p">()</span> <span class="o">//</span> <span class="n">number</span> <span class="n">of</span> <span class="n">rows</span>
-<span class="n">init</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">contents</span> <span class="n">of</span> <span class="n">column</span> <span class="mi">1</span>
-<span class="n">init</span><span class="o">.</span><span class="n">sparse</span><span class="p">()</span> <span class="o">//</span> <span class="n">whether</span> <span class="n">the</span> <span class="n">matrix</span> <span class="ow">is</span> <span class="n">sparse</span><span class="o">.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">init</span><span class="o">.</span><span class="n">nrow</span><span class="p">()</span> <span class="c1"># number of rows</span>
+<span class="n">init</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="c1"># contents of column 1</span>
+<span class="n">init</span><span class="o">.</span><span class="n">is_sparse</span><span class="p">()</span> <span class="c1"># whether the matrix is sparse.</span>
 </pre></div>
 </div>
 <p>It also has a few methods for computing common statistics:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">init</span><span class="o">.</span><span class="n">row_sums</span><span class="p">()</span>
-<span class="n">init</span><span class="o">.</span><span class="n">column_variances</span><span class="p">(</span><span class="n">num_threads</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">init</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># row sums</span>
+<span class="n">init</span><span class="o">.</span><span class="n">variance</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_threads</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="c1"># column variances</span>
 
 <span class="n">grouping</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">init</span><span class="o">.</span><span class="n">ncol</span><span class="p">())]</span>
-<span class="n">init</span><span class="o">.</span><span class="n">row_medians_by_group</span><span class="p">(</span><span class="n">grouping</span><span class="p">)</span>
+<span class="n">init</span><span class="o">.</span><span class="n">group_median</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">grouping</span><span class="p">)</span> <span class="c1"># row median for each group</span>
 
-<span class="n">init</span><span class="o">.</span><span class="n">row_nan_counts</span><span class="p">()</span>
-<span class="n">init</span><span class="o">.</span><span class="n">column_ranges</span><span class="p">()</span>
+<span class="n">init</span><span class="o">.</span><span class="n">nan_count</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">init</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>These are mostly intended for non-intensive work or testing/debugging.
@@ -390,7 +391,7 @@ It is also more convenient as we don’t have to carry around <code class="docut
 <section id="extending-to-custom-matrices">
 <h2>Extending to custom matrices<a class="headerlink" href="#extending-to-custom-matrices" title="Link to this heading">¶</a></h2>
 <p>Developers can extend <strong>mattress</strong> to custom matrix classes by registering new methods with the <code class="docutils literal notranslate"><span class="pre">initialize()</span></code> generic.
-This should return a <code class="docutils literal notranslate"><span class="pre">InitializedMatrix</span></code> object containing a <code class="docutils literal notranslate"><span class="pre">uintptr_t</span></code> cast from a pointer to a <code class="docutils literal notranslate"><span class="pre">tatami::Matrix</span></code> (see <a class="reference internal" href="#src/mattress/include/mattress.h"><span class="xref myst">the included header</span></a>).
+This should return a <code class="docutils literal notranslate"><span class="pre">InitializedMatrix</span></code> object containing a pointer to a <code class="docutils literal notranslate"><span class="pre">tatami::Matrix</span></code> (see <a class="reference internal" href="#src/mattress/include/mattress.h"><span class="xref myst">the included header</span></a>).
 Once this is done, all calls to <code class="docutils literal notranslate"><span class="pre">initialize()</span></code> will be able to handle matrices of the newly registered types.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">lib_downstream</span> <span class="k">as</span> <span class="n">lib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">mattress</span>
@@ -398,6 +399,7 @@ Once this is done, all calls to <code class="docutils literal notranslate"><span
 <span class="nd">@mattress</span><span class="o">.</span><span class="n">initialize</span><span class="o">.</span><span class="n">register</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_initialize_my_custom_matrix</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">MyCustomMatrix</span><span class="p">):</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">some_internal_data</span>
+    <span class="c1"># lib.initialize_custom is assumed to return a uintptr_t.</span>
     <span class="k">return</span> <span class="n">mattress</span><span class="o">.</span><span class="n">InitializedMatrix</span><span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">initialize_custom</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
 </pre></div>
 </div>
@@ -480,7 +482,7 @@ This is achieved by storing a reference to the data in the <code class="docutils
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=5bfaad31"></script>
+</div><script src="_static/documentation_options.js?v=1a648454"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
