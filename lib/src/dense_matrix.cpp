@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include "tatami/tatami.hpp"
+#include "sanisizer/sanisizer.hpp"
 
 #include "pybind11/pybind11.h"
 #include "pybind11/numpy.h"

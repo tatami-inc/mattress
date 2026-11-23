@@ -8,6 +8,9 @@
 #include <stdexcept>
 #include <cstdint>
 
+#include "tatami/tatami.hpp"
+#include "sanisizer/sanisizer.hpp"
+
 template<typename Data_, typename Index_>
 std::uintptr_t initialize_fragmented_sparse_matrix_raw(
     const mattress::MatrixIndex nr,

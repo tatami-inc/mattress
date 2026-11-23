@@ -1,4 +1,4 @@
-from typing import Tuple, Sequence, Optional
+from typing import Tuple, Sequence, Optional, Union
 
 import numpy
 import delayedarray
@@ -93,7 +93,7 @@ class InitializedMatrix:
             >>> ptr = mattress.initialize(mat)
             >>> ptr.shape
         """
-        return lib.get_dim(self._ptr)
+        return lib.tatami_dim(self._ptr)
 
     @property
     def ptr(self) -> int:
@@ -175,7 +175,7 @@ class InitializedMatrix:
         """
         return self.__array__()
 
-    def sparse(self) -> bool:
+    def is_sparse(self) -> bool:
         """
         Is the matrix sparse?
 
@@ -187,20 +187,40 @@ class InitializedMatrix:
             >>> import mattress
             >>> mat = numpy.random.rand(1000, 20)
             >>> ptr = mattress.initialize(mat)
-            >>> ptr.sparse()
+            >>> ptr.is_sparse()
         """
-        return lib.get_sparse(self._ptr);
+        return lib.tatami_is_sparse(self._ptr);
 
-    def row(self, r: int) -> numpy.ndarray:
+    def prefer_rows(self) -> bool:
         """
-        Access a row from the tatami matrix.
+        Does the matrix prefer row-by-row access, e.g., for row-major representations?
+
+        Returns:
+            True if matrix prefers row access.
+
+        Examples:
+            >>> import numpy
+            >>> import mattress
+            >>> mat = numpy.random.rand(1000, 20)
+            >>> ptr = mattress.initialize(mat)
+            >>> ptr.prefer_rows()
+        """
+        return lib.tatami_prefer_rows(self._ptr);
+
+    def get(self, row: bool, i: int) -> numpy.ndarray:
+        """
+        Extract a row or column from the tatami matrix.
         This method is primarily intended for troubleshooting and should not be used to iterate over the matrix in production code.
         (Do that in C++ instead.)
 
         Args:
-            r:
-                Row to access.
-                This should be non-negative and less than :py:meth:`~nrow`.
+            row:
+                Whether to extract a row.
+                If ``False``, a column is extract instead.
+
+            i:
+                Row or column to extract.
+                This should be non-negative and less than :py:meth:`~nrow` (if ``row = True``) or :py:meth:`~ncol` (otherwise).
 
         Returns:
             Contents of row ``r`` of the matrix.
@@ -211,285 +231,124 @@ class InitializedMatrix:
             >>> import mattress
             >>> mat = numpy.random.rand(1000, 20)
             >>> ptr = mattress.initialize(mat)
-            >>> ptr.row(0)
+            >>> ptr.get(True, 0)
         """
-        return lib.extract_row(self._ptr, r)
+        return lib.tatami_get_single(self._ptr, row, i)
 
-    def column(self, c: int) -> numpy.ndarray:
+    def sum(self, row: bool, num_threads: int = 1) -> numpy.ndarray:
         """
-        Access a column from the tatami matrix.
-        This method is primarily intended for troubleshooting and should not be used to iterate over the matrix in production code.
-        (Do that in C++ instead.)
+        Convenience method to compute row or column sums.
 
         Args:
-            c:
-                Column to access.
-                This should be non-negative and less than :py:meth:`~ncol`.
+            row:
+                Whether to compute row sums.
+                If ``False``, column sums are computed instead.
 
-        Returns:
-            Contents of column ``c`` from the matrix.
-            This is always in double-precision, regardless of the underlying representation.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.column(0)
-        """
-        return lib.extract_column(self._ptr, c)
-
-    def row_sums(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to compute row sums.
-
-        Args:
             num_threads:
                 Number of threads.
 
         Returns:
-            Double-precision array of row sums.
+            Double-precision array of row or column sums.
 
         Examples:
             >>> import numpy
             >>> import mattress
             >>> mat = numpy.random.rand(10, 20)
             >>> ptr = mattress.initialize(mat)
-            >>> ptr.row_sums()
+            >>> ptr.sum(True)
         """
-        return lib.compute_row_sums(self._ptr, num_threads)
+        return lib.tatami_sums(self._ptr, row, num_threads)
 
-    def column_sums(self, num_threads: int = 1) -> numpy.ndarray:
+    def variance(self, row: bool, num_threads: int = 1) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
-        Convenience method to compute column sums.
+        Convenience method to compute row or column variances.
+        This will also return the row/column means as a by-product.
 
         Args:
+            row:
+                Whether to compute row variances.
+                If ``False``, column variances are computed instead.
+
             num_threads:
                 Number of threads.
 
         Returns:
-            Double-precision array of column sums.
+            Tuple of length 2.
+            The first element is a double-precision array of row or column means.
+            The second element is a double-precision array of row or column variances.
 
         Examples:
             >>> import numpy
             >>> import mattress
             >>> mat = numpy.random.rand(10, 20)
             >>> ptr = mattress.initialize(mat)
-            >>> ptr.column_sums()
+            >>> ptr.variance(True)
         """
-        return lib.compute_column_sums(self._ptr, num_threads)
+        return lib.tatami_variances(self._ptr, row, num_threads)
 
-    def row_variances(self, num_threads: int = 1) -> numpy.ndarray:
+    def median(self, row: bool, num_threads: int = 1) -> numpy.ndarray:
         """
-        Convenience method to compute row variances.
+        Convenience method to compute row or column medians.
 
         Args:
-            num_threads:
-                Number of threads.
+            row:
+                Whether to compute row medians.
+                If ``False``, column medians are computed instead.
 
-        Returns:
-            Double-precision array of row variances.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.row_variances()
-        """
-        return lib.compute_row_variances(self._ptr, num_threads)
-
-    def column_variances(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to compute column variances.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Double-precision array of column variances.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.column_variances()
-        """
-        return lib.compute_column_variances(self._ptr, num_threads)
-
-    def row_medians(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to compute row medians.
-
-        Args:
             num_threads: Number of threads.
 
         Returns:
-            Double-precision array of row medians.
+            Double-precision array of row or column medians.
 
         Examples:
             >>> import numpy
             >>> import mattress
             >>> mat = numpy.random.rand(10, 20)
             >>> ptr = mattress.initialize(mat)
-            >>> ptr.row_medians()
+            >>> ptr.median(True)
         """
-        return lib.compute_row_medians(self._ptr, num_threads)
+        return lib.tatami_medians(self._ptr, row, num_threads)
 
-    def column_medians(self, num_threads: int = 1) -> numpy.ndarray:
+    def range(self, row: bool, num_threads: int = 1) -> Tuple[numpy.ndarray, numpy.ndarray]:
         """
-        Convenience method to compute column medians.
+        Convenience method to compute row or column ranges.
 
         Args:
+            row:
+                Whether to compute row ranges.
+                If ``False``, column ranges are computed instead.
+
             num_threads:
                 Number of threads.
 
         Returns:
-            Double-precision array of column medians.
+            Tuple of length 2.
+            The first element is a double-precision array of row or column minima.
+            The second element is a double-precision array of row or column maxima.
 
         Examples:
             >>> import numpy
             >>> import mattress
             >>> mat = numpy.random.rand(10, 20)
             >>> ptr = mattress.initialize(mat)
-            >>> ptr.column_medians()
+            >>> ptr.range(True)
         """
-        return lib.compute_column_medians(self._ptr, num_threads)
+        return lib.tatami_ranges(self._ptr, row, num_threads)
 
-    def row_mins(self, num_threads: int = 1) -> numpy.ndarray:
+    def nan_count(self, row: bool, num_threads: int = 1) -> numpy.ndarray:
         """
-        Convenience method to compute row minima.
+        Convenience method to count the number of NaNs on each row or column.
 
         Args:
+            row:
+                Whether to count NaNs per row.
+                If ``False``, counts per column are computed instead.
+
             num_threads:
                 Number of threads.
 
         Returns:
-            Double-precision array of row minima.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.row_mins()
-        """
-        return lib.compute_row_mins(self._ptr, num_threads)
-
-    def column_mins(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to compute column minima.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Double-precision array of column minima.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.column_mins()
-        """
-        return lib.compute_column_mins(self._ptr, num_threads)
-
-    def row_maxs(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to compute row maxima.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Double-precision array of row maxima.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.row_maxs()
-        """
-        return lib.compute_row_maxs(self._ptr, num_threads)
-
-    def column_maxs(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to compute column maxima.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Double-precision array of column maxima.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.column_maxs()
-        """
-        return lib.compute_column_maxs(self._ptr, num_threads)
-
-    def row_ranges(self, num_threads: int = 1) -> Tuple[numpy.ndarray, numpy.ndarray]:
-        """
-        Convenience method to compute row ranges.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Tuple of two double-precision arrays.
-            The first contains the row minima and the second contains the row maxima.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.row_ranges()
-        """
-        return lib.compute_row_ranges(self._ptr, num_threads)
-
-    def column_ranges(self, num_threads: int = 1) -> Tuple[numpy.ndarray, numpy.ndarray]:
-        """
-        Convenience method to compute column ranges.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Tuple of two double-precision arrays.
-            The first contains the column minima and the second contains the column maxima.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.column_ranges()
-        """
-        return lib.compute_column_ranges(self._ptr, num_threads)
-
-    def row_nan_counts(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to count the number of NaNs on each row.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Integer array containing the number of NaNs in each row.
+            Integer array containing the number of NaNs in each row/column.
 
         Examples:
             >>> import numpy
@@ -498,114 +357,40 @@ class InitializedMatrix:
             >>> mat[0,0] = numpy.nan
             >>> mat[9,19] = numpy.nan
             >>> ptr = mattress.initialize(mat)
-            >>> ptr.row_nan_counts()
+            >>> ptr.nan_count(True)
         """
-        return lib.compute_row_nan_counts(self._ptr, num_threads)
+        return lib.tatami_nan_counts(self._ptr, row, num_threads)
 
-    def column_nan_counts(self, num_threads: int = 1) -> numpy.ndarray:
-        """
-        Convenience method to count the number of NaNs on each column.
-
-        Args:
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Integer array containing the number of NaNs in each column.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> mat[0,0] = numpy.nan
-            >>> mat[9,19] = numpy.nan
-            >>> ptr = mattress.initialize(mat)
-            >>> ptr.column_nan_counts()
-        """
-        return lib.compute_column_nan_counts(self._ptr, num_threads)
-
-    def row_medians_by_group(
-        self, group: Sequence,
+    def group_sum(
+        self,
+        row: bool,
+        group: Sequence,
         num_threads: int = 1
     ) -> Tuple[numpy.ndarray, list]:
         """
-        Convenience method to compute the row-wise median for each group of columns.
+        Convenience method to compute the sum for each group of rows or columns. 
 
         Args:
+            row:
+                Whether to compute the row-wise sum for each group of columns.
+                If ``False``, column-wise sums are computed for each group of rows instead.
+
             group:
-                Sequence of length equal to the number of columns of the matrix, containing the group assignment for each column.
-
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Tuple of (i) a 2-dimensional array where each column represents a group and contains the row-wise medians for that group;
-            and (ii) a list containing the unique levels of ``group`` represented by each column.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> group = ["A", "B"] * 10
-            >>> ptr.row_medians_by_group(group)
-        """
-        lev, ind = _factorize(group)
-        if len(ind) != self.ncol():
-            raise ValueError(
-                "'group' should have length equal to the number of columns"
-            )
-
-        output = lib.compute_row_medians_by_group(self._ptr, ind, num_threads);
-        return output, lev
-
-    def column_medians_by_group(
-        self, group: Sequence, num_threads: int = 1
-    ) -> Tuple[numpy.ndarray, list]:
-        """
-        Convenience method to compute the column-wise median for each group of row.
-
-        Args:
-            group:
-                Sequence of length equal to the number of row of the matrix, containing the group assignment for each row.
-
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Tuple of (i) a 2-dimensional array where each row represents a group and contains the column-wise medians for that group;
-            and (ii) a list containing the unique levels of ``group`` represented by each row.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> group = ["A", "B"] * 5
-            >>> ptr.column_medians_by_group(group)
-        """
-        lev, ind = _factorize(group)
-        if len(ind) != self.nrow():
-            raise ValueError("'group' should have length equal to the number of rows")
-
-        output = lib.compute_column_medians_by_group(self._ptr, ind, num_threads)
-        return output.T, lev
-
-    def row_sums_by_group(
-        self, group: Sequence, num_threads: int = 1
-    ) -> Tuple[numpy.ndarray, list]:
-        """
-        Convenience method to compute the row-wise sum for each group of columns.
-
-        Args:
-            group:
-                Sequence of length equal to the number of columns of the matrix, containing the group assignment for each column.
+                Sequence of length equal to the number of columns (if ``row = True``) or rows (otherwise) of the matrix,
+                containing the group assignment for each column/row.
 
             num_threads: Number of threads.
 
         Returns:
-            Tuple of (i) a 2-dimensional array where each column represents a group and contains the row-wise sums for that group;
-            and (ii) a list containing the unique levels of ``group`` represented by each column.
+            Tuple of length 2.
+            The first element is a 2-dimensional array:
+
+            - If ``row = True``, each column of the array represents a group, while each row corresponds to a row of the ``tatami::Matrix``.
+              Each entry contains the row-wise sum for a group.
+            - If ``row = False``, each row of the array represents a group, while each column corresponds to a column of the ``tatami::Matrix``.
+              Each entry contains the column-wise sum for a group.
+
+            The second tuple element is a list containing the unique levels of ``group`` represented by each row/column in the aforementioned array.
 
         Examples:
             >>> import numpy
@@ -613,64 +398,42 @@ class InitializedMatrix:
             >>> mat = numpy.random.rand(10, 20)
             >>> ptr = mattress.initialize(mat)
             >>> group = ["A", "B"] * 10
-            >>> ptr.row_sums_by_group(group)
+            >>> ptr.group_sum(True, group)
         """
         lev, ind = _factorize(group)
-        if len(ind) != self.ncol():
-            raise ValueError(
-                "'group' should have length equal to the number of columns"
-            )
-
-        output = lib.compute_row_sums_by_group(self._ptr, ind, num_threads)
+        output = lib.tatami_group_sum(self._ptr, row, ind, len(lev), num_threads)
         return output, lev
 
-    def column_sums_by_group(
-        self, group: Sequence, num_threads: int = 1
+    def group_variance(
+        self,
+        row: bool,
+        group: Sequence,
+        num_threads: int = 1
     ) -> Tuple[numpy.ndarray, list]:
         """
-        Convenience method to compute the column-wise sum for each group of row.
+        Convenience method to compute the variance for each group of rows or columns. 
 
         Args:
+            row:
+                Whether to compute the row-wise variance for each group of columns.
+                If ``False``, column-wise variances are computed for each group of rows instead.
+
             group:
-                Sequence of length equal to the number of row of the matrix, containing the group assignment for each row.
-
-            num_threads:
-                Number of threads.
-
-        Returns:
-            Tuple of (i) a 2-dimensional array where each row represents a group and contains the column-wise sums for that group;
-            and (ii) a list containing the unique levels of ``group`` represented by each row.
-
-        Examples:
-            >>> import numpy
-            >>> import mattress
-            >>> mat = numpy.random.rand(10, 20)
-            >>> ptr = mattress.initialize(mat)
-            >>> group = ["A", "B"] * 5
-            >>> ptr.column_sums_by_group(group)
-        """
-        lev, ind = _factorize(group)
-        if len(ind) != self.nrow():
-            raise ValueError("'group' should have length equal to the number of rows")
-
-        output = lib.compute_column_sums_by_group(self._ptr, ind, num_threads)
-        return output.T, lev
-
-    def row_variances_by_group(
-        self, group: Sequence, num_threads: int = 1
-    ) -> Tuple[numpy.ndarray, list]:
-        """
-        Convenience method to compute the row-wise variance for each group of columns.
-
-        Args:
-            group: Sequence of length equal to the number of columns of the matrix,
-                containing the group assignment for each column.
+                Sequence of length equal to the number of columns (if ``row = True``) or rows (otherwise) of the matrix,
+                containing the group assignment for each column/row.
 
             num_threads: Number of threads.
 
         Returns:
-            Tuple of (i) a 2-dimensional array where each column represents a group and contains the row-wise variances for that group;
-            and (ii) a list containing the unique levels of ``group`` represented by each column.
+            Tuple of length 3.
+            The first two elements are 2-dimensional arrays containing the per-group mean and variances, respectively:
+
+            - If ``row = True``, each column of the array represents a group, while each row corresponds to a row of the ``tatami::Matrix``.
+              Each entry contains the row-wise mean or variance for a group.
+            - If ``row = False``, each row of the array represents a group, while each column corresponds to a column of the ``tatami::Matrix``.
+              Each entry contains the column-wise mean or variance for a group.
+
+            The third tuple element is a list containing the unique levels of ``group`` represented by each row/column in the aforementioned arrays.
 
         Examples:
             >>> import numpy
@@ -678,48 +441,84 @@ class InitializedMatrix:
             >>> mat = numpy.random.rand(10, 20)
             >>> ptr = mattress.initialize(mat)
             >>> group = ["A", "B"] * 10
-            >>> ptr.row_variances_by_group(group)
+            >>> ptr.group_variance(True, group)
         """
         lev, ind = _factorize(group)
-        if len(ind) != self.ncol():
-            raise ValueError(
-                "'group' should have length equal to the number of columns"
-            )
+        output = lib.tatami_group_variance(self._ptr, row, ind, len(lev), num_threads)
+        return (*output, lev)
 
-        output = lib.compute_row_variances_by_group(self._ptr, ind, num_threads)
-        return output, lev
-
-    def column_variances_by_group(
-        self, group: Sequence, num_threads: int = 1
+    def group_median(
+        self,
+        row: bool,
+        group: Sequence,
+        num_threads: int = 1
     ) -> Tuple[numpy.ndarray, list]:
         """
-        Convenience method to compute the column-wise variance for each group of row.
+        Convenience method to compute the median for each group of rows or columns. 
 
         Args:
+            row:
+                Whether to compute the row-wise median for each group of columns.
+                If ``False``, column-wise medians are computed for each group of rows instead.
+
             group:
-                Sequence of length equal to the number of row of the matrix, containing the group assignment for each row.
+                Sequence of length equal to the number of columns (if ``row = True``) or rows (otherwise) of the matrix,
+                containing the group assignment for each column/row.
 
             num_threads:
                 Number of threads.
 
         Returns:
-            Tuple of (i) a 2-dimensional array where each row represents a group and contains the column-wise variances for that group;
-            and (ii) a list containing the unique levels of ``group`` represented by each row.
+            Tuple of length 2.
+            The first element is a 2-dimensional array:
+
+            - If ``row = True``, each column of the array represents a group, while each row corresponds to a row of the ``tatami::Matrix``.
+              Each entry contains the row-wise median for a group.
+            - If ``row = False``, each row of the array represents a group, while each column corresponds to a column of the ``tatami::Matrix``.
+              Each entry contains the column-wise median for a group.
+
+            The second tuple element is a list containing the unique levels of ``group`` represented by each row/column in the aforementioned array.
 
         Examples:
             >>> import numpy
             >>> import mattress
             >>> mat = numpy.random.rand(10, 20)
             >>> ptr = mattress.initialize(mat)
-            >>> group = ["A", "B"] * 5
-            >>> ptr.column_variances_by_group(group)
+            >>> group = ["A", "B"] * 10
+            >>> ptr.group_median(True, group)
         """
         lev, ind = _factorize(group)
-        if len(ind) != self.nrow():
-            raise ValueError("'group' should have length equal to the number of rows")
+        output = lib.tatami_group_median(self._ptr, row, ind, len(lev), num_threads);
+        return output, lev
 
-        output = lib.compute_column_variances_by_group(self._ptr, ind, num_threads)
-        return output.T, lev
+    def multiply(self, val: Union[numpy.ndarray, "InitializedMatrix"], right: bool = True, num_threads: int = 1) -> numpy.ndarray:
+        """ 
+        Compute a matrix-vector or matrix-matrix products.
+
+        Args:
+            val:
+                A 1-dimensional NumPy array representing a vector;
+                or a 2-dimensional NumPy array representing a collection of vectors in its columns;
+                or another ``InitializedMatrix`` object.
+
+            right:
+                Whether ``val`` is the right operand of the multiplication.
+                If ``False``, this ``InitializedMatrix`` is on the right and ``val`` is on the left.
+
+            num_threads:
+                Number of threads to use. 
+
+        Returns:
+            A NumPy array containing the product.
+            This is 1-dimensional if ``val`` is 1-dimensional, otherwise it will be a 2-dimensional array.
+        """
+        if isinstance(val, numpy.ndarray):
+            if len(val.shape) == 1:
+                return lib.tatami_multiply_vector(self._ptr, val, right, num_threads)
+            else:
+                return lib.tatami_multiply_columns(self._ptr, numpy.asfortranarray(val), right, num_threads)
+        else:
+            return lib.tatami_multiply_matrix(self._ptr, val.ptr, right, num_threads)
 
 
 @delayedarray.is_sparse.register
@@ -742,7 +541,7 @@ def is_sparse(x: InitializedMatrix) -> bool:
         >>> import delayedarray
         >>> delayedarray.is_sparse(ptr)
     """
-    return x.sparse()
+    return x.is_sparse()
 
 
 def _extract_array(x: InitializedMatrix, subset: Tuple[Sequence[int], ...], sparse: bool): 
@@ -750,9 +549,9 @@ def _extract_array(x: InitializedMatrix, subset: Tuple[Sequence[int], ...], spar
     rnoop, rsub = _sanitize_subset(subset[0], shape[0])
     cnoop, csub = _sanitize_subset(subset[1], shape[1])
     if not sparse:
-        return lib.extract_dense_subset(x.ptr, rnoop, rsub, cnoop, csub)
+        return lib.tatami_get_dense_subset(x.ptr, rnoop, rsub, cnoop, csub)
     else:
-        return lib.extract_sparse_subset(x.ptr, rnoop, rsub, cnoop, csub)
+        return lib.tatami_get_sparse_subset(x.ptr, rnoop, rsub, cnoop, csub)
 
 
 @delayedarray.extract_dense_array.register
@@ -809,15 +608,15 @@ def extract_sparse_array(x: InitializedMatrix, subset: Tuple[Sequence[int], ...]
 @delayedarray.is_masked.register
 def is_masked(x: InitializedMatrix) -> bool:
     """
-    See :py:func:`~delayedarray.is_masked.is_masked`.
+    This is only implemented to satisfy the **delayedarray** interface,
+    see :py:func:`~delayedarray.is_masked.is_masked`.
 
     Args:
         x: 
             An ``InitializedMatrix`` object.
 
     Returns:
-        Whether the matrix is masked. 
-        (It's not.)
+        ``False``, as the **tatami** library has no concept of masking.
 
     Examples:
         >>> import scipy 
@@ -833,6 +632,8 @@ def is_masked(x: InitializedMatrix) -> bool:
 def chunk_grid(x: InitializedMatrix) -> bool:
     """
     See :py:func:`~delayedarray.chunk_grid.chunk_grid`.
+    Note that this is only implemented to satisfy the **delayedarray** interface;
+    chunk-wise processing will be quite inefficient.
 
     Args:
         x: 

@@ -17,13 +17,13 @@ std::uintptr_t initialize_delayed_unary_isometric_operation_simple(std::uintptr_
         opptr.reset(new tatami::DelayedUnaryIsometricSignHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "log") {
-        opptr.reset(new tatami::DelayedUnaryIsometricLogHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>);
+        opptr.reset(new tatami::DelayedUnaryIsometricLogHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "log2") {
-        opptr.reset(new tatami::DelayedUnaryIsometricLogHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>(2.0));
+        opptr.reset(new tatami::DelayedUnaryIsometricLog2Helper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "log10") {
-        opptr.reset(new tatami::DelayedUnaryIsometricLogHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>(10.0));
+        opptr.reset(new tatami::DelayedUnaryIsometricLog10Helper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
     } else if (op == "log1p") {
-        opptr.reset(new tatami::DelayedUnaryIsometricLog1pHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex, double>);
+        opptr.reset(new tatami::DelayedUnaryIsometricLog1pHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);
 
     } else if (op == "sqrt") {
         opptr.reset(new tatami::DelayedUnaryIsometricSqrtHelper<mattress::MatrixValue, mattress::MatrixValue, mattress::MatrixIndex>);

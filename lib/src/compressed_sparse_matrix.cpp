@@ -7,6 +7,11 @@
 #include <string>
 #include <stdexcept>
 #include <cstdint>
+#include <cstddef>
+#include <memory>
+
+#include "tatami/tatami.hpp"
+#include "sanisizer/sanisizer.hpp"
 
 template<typename Data_, typename Index_>
 std::uintptr_t initialize_compressed_sparse_matrix_raw(

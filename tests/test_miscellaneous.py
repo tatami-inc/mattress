@@ -2,6 +2,7 @@ import numpy as np
 from mattress import initialize, InitializedMatrix
 import delayedarray as da
 import scipy
+import random
 
 __author__ = "ltla, jkanche"
 __copyright__ = "ltla, jkanche"
@@ -15,27 +16,46 @@ def test_pointer_rewrap():
     assert ptr.ptr == reptr.ptr
 
 
+def test_simple_properties():
+    y = np.random.rand(1000, 100)
+    ptr = initialize(y)
+
+    assert ptr.shape == (1000, 100)
+    assert ptr.nrow() == 1000
+    assert ptr.ncol() == 100
+    assert ptr.dtype == np.float64
+    assert not ptr.is_sparse()
+    assert ptr.prefer_rows()
+
+    assert (ptr.get(True, 0) == y[0,:]).all()
+    assert (ptr.get(True, 999) == y[999,:]).all()
+    assert (ptr.get(False, 0) == y[:,0]).all()
+    assert (ptr.get(False, 99) == y[:,99]).all()
+
+
 def test_simple_stats():
     y = np.random.rand(1000, 100)
     ptr = initialize(y)
 
-    assert np.allclose(ptr.row_sums(), y.sum(axis=1))
-    assert np.allclose(ptr.column_sums(), y.sum(axis=0))
-    assert np.allclose(ptr.row_variances(), y.var(axis=1, ddof=1))
-    assert np.allclose(ptr.column_variances(), y.var(axis=0, ddof=1))
+    assert np.allclose(ptr.sum(True), y.sum(axis=1))
+    assert np.allclose(ptr.sum(False), y.sum(axis=0))
 
-    assert ptr.row_medians().shape == (1000,)
-    assert ptr.column_medians().shape == (100,)
+    m, v = ptr.variance(True) 
+    assert np.allclose(m, y.mean(axis=1))
+    assert np.allclose(v, y.var(axis=1, ddof=1))
 
-    assert (ptr.row_mins() == y.min(axis=1)).all()
-    assert (ptr.column_mins() == y.min(axis=0)).all()
-    assert (ptr.row_maxs() == y.max(axis=1)).all()
-    assert (ptr.column_maxs() == y.max(axis=0)).all()
+    m, v = ptr.variance(False) 
+    assert np.allclose(m, y.mean(axis=0))
+    assert np.allclose(v, y.var(axis=0, ddof=1))
 
-    mn, mx = ptr.row_ranges()
+    assert ptr.median(True).shape == (1000,)
+    assert ptr.median(False).shape == (100,)
+
+    mn, mx = ptr.range(True)
     assert (mn == y.min(axis=1)).all()
     assert (mx == y.max(axis=1)).all()
-    mn, mx = ptr.column_ranges()
+
+    mn, mx = ptr.range(False)
     assert (mn == y.min(axis=0)).all()
     assert (mx == y.max(axis=0)).all()
 
@@ -48,54 +68,145 @@ def test_nan_counts():
     y[2, 3] = np.nan
 
     ptr = initialize(y)
-    rnan = ptr.row_nan_counts()
-    cnan = ptr.column_nan_counts()
+    rnan = ptr.nan_count(True)
     assert rnan[0] == 1
+
+    cnan = ptr.nan_count(False)
     assert cnan[3] == 2
 
 
-def test_grouped_stats():
+def _validate_group_stat(res, levels, mat, row, grouping, fun):
+    unique = {}
+    for l in levels:
+        unique[l] = []
+    for i, g in enumerate(grouping):
+        unique[g].append(i)
+    for i, l in enumerate(levels):
+        idx = np.array(unique[l])
+        if row:
+            assert np.allclose(res[:,i], fun(mat[:,idx]))
+        else:
+            assert np.allclose(res[i,:], fun(mat[idx,:]))
+
+
+def test_group_sum():
     y = np.random.rand(20, 10)
     ptr = initialize(y)
 
-    cgrouping = ["D", "C", "B", "A", "A", "B", "C", "B", "A", "A"]
+    cgrouping = random.choices("ABCD", k=y.shape[1])
     rgrouping = []
-    for i in range(20):
+    for i in range(y.shape[0]):
         rgrouping.append(i % 3)
 
-    rmed, rlev = ptr.row_medians_by_group(cgrouping)
-    assert rmed.shape == (20, 4)
-    assert len(rlev) == 4
-    assert (rmed[:, rlev.index("D")] == y[:, 0]).all()
+    rsum, rlev = ptr.group_sum(True, cgrouping)
+    _validate_group_stat(rsum, rlev, y, True, cgrouping, lambda submat : submat.sum(axis=1))
 
-    cmed, clev = ptr.column_medians_by_group(rgrouping)
-    assert cmed.shape == (3, 10)
-    assert len(clev) == 3
+    csum, clev = ptr.group_sum(False, rgrouping)
+    _validate_group_stat(csum, clev, y, False, rgrouping, lambda submat : submat.sum(axis=0))
 
-    keep = []
-    for i, x in enumerate(rgrouping):
-        if x == 1:
-            keep.append(i)
-    ref = y[keep, :]
-    rptr = initialize(ref)
-    assert (cmed[clev.index(1), :] == rptr.column_medians()).all()
 
-    rsum, rlev = ptr.row_sums_by_group(cgrouping)
-    assert rsum.shape == (20, 4)
-    assert len(rlev) == 4
-    assert (rsum[:, rlev.index("D")] == y[:, 0]).all()
+def test_group_variance():
+    y = np.random.rand(20, 10)
+    ptr = initialize(y)
 
-    csum, clev = ptr.column_sums_by_group(rgrouping)
-    assert csum.shape == (3, 10)
-    assert len(clev) == 3
+    cgrouping = list("ABCABCABCA") # ensure at least 2 observations for each group to avoid handling NaNs in comparisons.
+    rgrouping = []
+    for i in range(y.shape[0]):
+        rgrouping.append(i % 3)
 
-    keep = []
-    for i, x in enumerate(rgrouping):
-        if x == 0:
-            keep.append(i)
-    ref = y[keep, :]
-    rptr = initialize(ref)
-    assert (csum[clev.index(0), :] == rptr.column_sums()).all()
+    rmean, rvar, rlev = ptr.group_variance(True, cgrouping)
+    _validate_group_stat(rmean, rlev, y, True, cgrouping, lambda submat : submat.mean(axis=1))
+    _validate_group_stat(rvar, rlev, y, True, cgrouping, lambda submat : submat.var(axis=1, ddof=1))
+
+    cmean, cvar, clev = ptr.group_variance(False, rgrouping)
+    _validate_group_stat(cmean, clev, y, False, rgrouping, lambda submat : submat.mean(axis=0))
+    _validate_group_stat(cvar, clev, y, False, rgrouping, lambda submat : submat.var(axis=0, ddof=1))
+
+
+def test_group_median():
+    y = np.random.rand(20, 10)
+    ptr = initialize(y)
+
+    cgrouping = random.choices("ABCD", k=y.shape[1])
+    rgrouping = []
+    for i in range(y.shape[0]):
+        rgrouping.append(i % 3)
+
+    rmed, rlev = ptr.group_median(True, cgrouping)
+    _validate_group_stat(rmed, rlev, y, True, cgrouping, lambda submat : initialize(submat).median(True))
+
+    cmed, clev = ptr.group_median(False, rgrouping)
+    _validate_group_stat(cmed, clev, y, False, rgrouping, lambda submat : initialize(submat).median(False))
+
+
+def test_matrix_vector_product():
+    y = np.random.rand(20, 10)
+    ptr = initialize(y)
+
+    v = np.random.rand(10)
+    assert np.allclose(np.matvec(y, v), ptr.multiply(v, right = True))
+    v = np.random.rand(20)
+    assert np.allclose(np.matvec(y.T, v).T, ptr.multiply(v, right = False))
+
+
+def test_matrix_columns_product_dense():
+    y = np.random.rand(20, 10)
+    assert y.flags["C_CONTIGUOUS"]
+    ptr = initialize(y)
+    ptrf = initialize(np.asfortranarray(y))
+
+    z = np.random.rand(10, 15)
+    zf = np.asfortranarray(z)
+    expected = np.matmul(y, z)
+    assert np.allclose(expected, ptr.multiply(z, right = True))
+    assert np.allclose(expected, ptr.multiply(zf, right = True))
+    assert np.allclose(expected, ptrf.multiply(z, right = True))
+    assert np.allclose(expected, ptrf.multiply(zf, right = True))
+
+    z = np.random.rand(15, 20)
+    zf = np.asfortranarray(z)
+    expected = np.matmul(z, y)
+    assert np.allclose(expected, ptr.multiply(z, right = False))
+    assert np.allclose(expected, ptr.multiply(zf, right = False))
+    assert np.allclose(expected, ptrf.multiply(z, right = False))
+    assert np.allclose(expected, ptrf.multiply(zf, right = False))
+
+
+def test_matrix_columns_product_sparse():
+    y = scipy.sparse.random(200, 500, 0.1).tocsr()
+    ptr = initialize(y)
+    ptrf = initialize(y.tocsc())
+
+    z = np.random.rand(500, 15)
+    zf = np.asfortranarray(z)
+    expected = np.matmul(y.toarray(), z)
+    assert np.allclose(expected, ptr.multiply(z, right = True))
+    assert np.allclose(expected, ptr.multiply(zf, right = True))
+    assert np.allclose(expected, ptrf.multiply(z, right = True))
+    assert np.allclose(expected, ptrf.multiply(zf, right = True))
+
+    z = np.random.rand(15, 200)
+    zf = np.asfortranarray(z)
+    expected = np.matmul(z, y.toarray())
+    assert np.allclose(expected, ptr.multiply(z, right = False))
+    assert np.allclose(expected, ptr.multiply(zf, right = False))
+    assert np.allclose(expected, ptrf.multiply(z, right = False))
+    assert np.allclose(expected, ptrf.multiply(zf, right = False))
+
+
+def test_matrix_matrix_product():
+    y1 = np.random.rand(20, 10)
+    ptr1 = initialize(y1)
+
+    y2 = np.random.rand(10, 15)
+    ptr2 = initialize(y2)
+    expected = np.matmul(y1, y2)
+    assert np.allclose(expected, ptr1.multiply(ptr2))
+
+    y2 = np.random.rand(15, 20)
+    ptr2 = initialize(y2)
+    expected = np.matmul(y2, y1)
+    assert np.allclose(expected, ptr1.multiply(ptr2, right = False))
 
 
 def test_DelayedArray_rewrap_dense():
@@ -129,7 +240,7 @@ def test_DelayedArray_rewrap_sparse_csc():
     assert isinstance(full, da.SparseNdarray)
     assert (np.array(full) == y.toarray()).all()
 
-    # These all indirectly call InitializedMatrix's extract_dense_array().
+    # These all indirectly call InitializedMatrix's extract_sparse_array().
     sub = da.extract_sparse_array(da2, (range(10, 50), range(0, 100, 2)))
     assert (np.array(sub) == y[10:50, 0:100:2].toarray()).all()
 
@@ -152,7 +263,7 @@ def test_DelayedArray_rewrap_sparse_csr():
     assert isinstance(full, da.SparseNdarray)
     assert (np.array(full) == y.toarray()).all()
 
-    # These all indirectly call InitializedMatrix's extract_dense_array().
+    # These all indirectly call InitializedMatrix's extract_sparse_array().
     sub = da.extract_sparse_array(da2, (range(10, 50), range(0, 100, 2)))
     assert (np.array(sub) == y[10:50, 0:100:2].toarray()).all()
 

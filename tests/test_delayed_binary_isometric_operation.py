@@ -15,44 +15,44 @@ def test_delayed_binary_isometric_arith():
     assert isinstance(x.seed, da.BinaryIsometricOp)
     ptr = initialize(x)
     ref = y1 + y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) - da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 - y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) * da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 * y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) / da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 / y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) % da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 % y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) // da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 // y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) ** da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1**y2
-    assert np.allclose(ptr.row(0), ref[0, :])
-    assert np.allclose(ptr.column(1), ref[:, 1])
+    assert np.allclose(ptr.get(True, 0), ref[0, :])
+    assert np.allclose(ptr.get(False, 1), ref[:, 1])
 
 
 def test_delayed_binary_isometric_compare():
@@ -63,38 +63,38 @@ def test_delayed_binary_isometric_compare():
     assert isinstance(x.seed, da.BinaryIsometricOp)
     ptr = initialize(x)
     ref = y1 == y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) != da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 != y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) > da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 > y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) >= da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 >= y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) < da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 < y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = da.DelayedArray(y1) <= da.DelayedArray(y2)
     ptr = initialize(x)
     ref = y1 <= y2
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
 
 def test_delayed_binary_isometric_logical():
@@ -105,17 +105,17 @@ def test_delayed_binary_isometric_logical():
     assert isinstance(x.seed, da.BinaryIsometricOp)
     ptr = initialize(x)
     ref = np.logical_or(y1, y2)
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = np.logical_and(da.DelayedArray(y1), da.DelayedArray(y2))
     ptr = initialize(x)
     ref = np.logical_and(y1, y2)
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()
 
     x = np.logical_xor(da.DelayedArray(y1), da.DelayedArray(y2))
     ptr = initialize(x)
     ref = np.logical_xor(y1, y2)
-    assert (ptr.row(0) == ref[0, :]).all()
-    assert (ptr.column(1) == ref[:, 1]).all()
+    assert (ptr.get(True, 0) == ref[0, :]).all()
+    assert (ptr.get(False, 1) == ref[:, 1]).all()

@@ -15,8 +15,8 @@ def test_delayed_bind():
     ref = np.concatenate((y1, y2), axis=1)
     assert isinstance(com.seed, da.Combine)
     ptr = initialize(com)
-    assert all(ptr.row(0) == ref[0, :])
-    assert all(ptr.column(1) == ref[:, 1])
+    assert all(ptr.get(True, 0) == ref[0, :])
+    assert all(ptr.get(False, 1) == ref[:, 1])
 
     y1 = np.random.rand(1000, 10)
     y2 = np.random.rand(500, 10)
@@ -28,5 +28,5 @@ def test_delayed_bind():
     ref = np.concatenate((y1, y2, y3))
     assert isinstance(com.seed, da.Combine)
     ptr = initialize(com)
-    assert all(ptr.row(0) == ref[0, :])
-    assert all(ptr.column(1) == ref[:, 1])
+    assert all(ptr.get(True, 0) == ref[0, :])
+    assert all(ptr.get(False, 1) == ref[:, 1])

@@ -43,8 +43,8 @@ def test_unknown_matrix(capsys):
     captured = capsys.readouterr()
     assert "unknown matrix fallback" in captured.out
 
-    assert all(ptr.row(0) == y[0, :])
-    assert all(ptr.column(1) == y[:, 1])
+    assert all(ptr.get(True, 0) == y[0, :])
+    assert all(ptr.get(False, 1) == y[:, 1])
     assert ptr.shape == (1000, 100)
 
     with pytest.warns(UserWarning, match="unknown matrix fallback"):
@@ -61,8 +61,8 @@ def test_unknown_operation(capsys):
     captured = capsys.readouterr()
     assert "unknown matrix fallback" in captured.out
 
-    assert all(ptr.row(0) == y[0, :])
-    assert all(ptr.column(1) == y[:, 1])
+    assert all(ptr.get(True, 0) == y[0, :])
+    assert all(ptr.get(False, 1) == y[:, 1])
     assert ptr.shape == (1000, 100)
 
     with pytest.warns(UserWarning, match="unknown matrix fallback"):

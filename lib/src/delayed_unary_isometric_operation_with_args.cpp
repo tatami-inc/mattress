@@ -4,6 +4,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/numpy.h"
 
+#include "sanisizer/sanisizer.hpp"
 #include "tatami/tatami.hpp"
 
 #include <string>

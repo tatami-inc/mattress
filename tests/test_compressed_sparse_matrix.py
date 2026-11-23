@@ -13,8 +13,8 @@ def test_sparse_csr_matrix_dtype():
         m = m0.astype(dt)
         assert isinstance(m, scipy.sparse.csr_matrix)
         ptr = initialize(m)
-        assert all(ptr.row(0) == m[0, :].toarray()[0])
-        assert all(ptr.column(1) == m[:, 1].toarray().flatten())
+        assert all(ptr.get(True, 0) == m[0, :].toarray()[0])
+        assert all(ptr.get(False, 1) == m[:, 1].toarray().flatten())
 
 
 def test_sparse_csr_matrix_index_dtype():
@@ -24,26 +24,26 @@ def test_sparse_csr_matrix_index_dtype():
         m.indices = m.indices.astype(it)
         assert isinstance(m, scipy.sparse.csr_matrix)
         ptr = initialize(m)
-        assert all(ptr.row(0) == m[0, :].toarray()[0])
-        assert all(ptr.column(1) == m[:, 1].toarray().flatten())
+        assert all(ptr.get(True, 0) == m[0, :].toarray()[0])
+        assert all(ptr.get(False, 1) == m[:, 1].toarray().flatten())
 
 
 def test_sparse_csr_array():
     m = scipy.sparse.rand(3, 4, density=0.25, format="csr", random_state=42).tocsr()
     ptr = initialize(m)
-    assert all(ptr.row(0) == m[0, :].toarray()[0])
-    assert all(ptr.column(1) == m[:, 1].toarray().flatten())
+    assert all(ptr.get(True, 0) == m[0, :].toarray()[0])
+    assert all(ptr.get(False, 1) == m[:, 1].toarray().flatten())
 
 
 def test_sparse_csc_matrix():
     m = scipy.sparse.rand(3, 4, density=0.25, format="csc", random_state=42)
     ptr = initialize(m)
-    assert all(ptr.row(0) == m[0, :].toarray()[0])
-    assert all(ptr.column(1) == m[:, 1].toarray().flatten())
+    assert all(ptr.get(True, 0) == m[0, :].toarray()[0])
+    assert all(ptr.get(False, 1) == m[:, 1].toarray().flatten())
 
 
 def test_sparse_csc_array():
     m = scipy.sparse.rand(3, 4, density=0.25, format="csc", random_state=42).tocsc()
     ptr = initialize(m)
-    assert all(ptr.row(0) == m[0, :].toarray()[0])
-    assert all(ptr.column(1) == m[:, 1].toarray().flatten())
+    assert all(ptr.get(True, 0) == m[0, :].toarray()[0])
+    assert all(ptr.get(False, 1) == m[:, 1].toarray().flatten())
