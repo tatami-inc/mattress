@@ -13,8 +13,13 @@ jobs:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
         python-version: [ '3.10', '3.14' ]
+        force-copy: [ false ]
+        include:
+          - os: 'ubuntu-latest'
+            python-version: '3.14'
+            force-copy: true
 
-    name: ${{ matrix.os }}, Python ${{ matrix.python-version }}
+    name: ${{ matrix.os }}, Python ${{ matrix.python-version }}, ${{ case(matrix.force-copy, 'force copy', 'default build') }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -28,6 +33,12 @@ jobs:
 
       - name: Get latest CMake
         uses: lukka/get-cmake@latest
+
+      - name: Inject fetch-copy compilation flags
+        if: ${{ matrix.os.force-copy }}
+        run: |
+            cat setup.py | sed "s/#\"-DFORCE_COPY/\"-DFORCE_COPY/" > tmp
+            mv tmp setup.py
 
       - name: Extract examples from docstrings
         run: |

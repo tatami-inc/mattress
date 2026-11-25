@@ -38,6 +38,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(mattress PRIVATE -Wall -Wpedantic -Wextra)
 endif()
 
+option(FORCE_COPY "Force copy in tatami::fetch" OFF)
+if(FORCE_COPY)
+    target_compile_definitions(mattress PRIVATE TATAMI_DEBUG_FORCE_COPY=1)
+endif()
+
 set_target_properties(mattress PROPERTIES
     OUTPUT_NAME _lib_mattress
     PREFIX ""

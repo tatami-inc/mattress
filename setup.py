@@ -32,6 +32,7 @@ class build_ext(build_ext_orig):
                 "cmake", 
                 "-S", "lib",
                 "-B", build_temp,
+                #"-DFORCE_COPY=ON", # enable for testing tatami extractor calls.
                 "-Dpybind11_DIR=" + os.path.join(os.path.dirname(pybind11.__file__), "share", "cmake", "pybind11"),
                 "-DPYBIND11_PYTHON_VERSION=" + str(sys.version_info.major) + "." + str(sys.version_info.minor) + "." + str(sys.version_info.micro),
                 "-DASSORTHEAD_INCLUDE_DIR=" + assorthead.includes()
