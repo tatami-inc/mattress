@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include "sanisizer/sanisizer.hpp"
+
 template<typename Input_>
 using I = std::remove_cv_t<std::remove_reference_t<Input_> >;
 
@@ -36,6 +38,13 @@ const Expected_* check_numpy_array(const pybind11::array& x) {
         throw std::runtime_error("unexpected dtype for NumPy array");
     }
     return check_contiguous_numpy_array<Expected_>(x);
+}
+
+typedef I<decltype(std::declval<pybind11::array>().request().shape[0])> ArrayExtent; 
+
+template<typename Index_>
+ArrayExtent cast_Index_to_ArrayExtent(Index_ x) {
+    return sanisizer::cast<ArrayExtent>(sanisizer::set_bound_by_type_unsafe<std::size_t>(x));
 }
 
 #endif

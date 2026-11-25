@@ -549,9 +549,9 @@ def _extract_array(x: InitializedMatrix, subset: Tuple[Sequence[int], ...], spar
     rnoop, rsub = _sanitize_subset(subset[0], shape[0])
     cnoop, csub = _sanitize_subset(subset[1], shape[1])
     if not sparse:
-        return lib.tatami_get_dense_subset(x.ptr, rnoop, rsub, cnoop, csub)
+        return lib.tatami_extract_dense_subset(x.ptr, rnoop, rsub, cnoop, csub)
     else:
-        return lib.tatami_get_sparse_subset(x.ptr, rnoop, rsub, cnoop, csub)
+        return lib.tatami_extract_sparse_subset(x.ptr, rnoop, rsub, cnoop, csub)
 
 
 @delayedarray.extract_dense_array.register
