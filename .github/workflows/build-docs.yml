@@ -13,10 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Find supported Python
+        uses: BiocPy/find-supported-python@v1
+        id: find-version
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: 3.14
+          python-version: ${{ steps.find-version.outputs.version }}
           cache: 'pip'
 
       - name: Install dependencies

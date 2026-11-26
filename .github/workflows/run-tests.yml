@@ -12,23 +12,29 @@ jobs:
     strategy:
       matrix:
         os: [ 'ubuntu-latest', 'macos-latest' ]
-        python-version: [ '3.10', '3.14' ]
+        python-version: [ 'latest', 'oldest' ]
         force-copy: [ false ]
         include:
           - os: 'ubuntu-latest'
-            python-version: '3.14'
+            python-version: 'latest'
             force-copy: true
 
-    name: ${{ matrix.os }}, Python ${{ matrix.python-version }}, ${{ case(matrix.force-copy, 'force copy', 'default build') }}
+    name: ${{ matrix.os }}, ${{ matrix.python-version }} Python, ${{ case(matrix.force-copy, 'force copy', 'default build') }}
     steps:
       - uses: actions/checkout@v7
         with:
           submodules: true
 
+      - name: Find supported Python
+        uses: BiocPy/find-supported-python@v1
+        id: find-version
+        with:
+          which: ${{ matrix.python-version }}
+
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ steps.find-version.outputs.version }}
           cache: 'pip'
 
       - name: Get latest CMake
